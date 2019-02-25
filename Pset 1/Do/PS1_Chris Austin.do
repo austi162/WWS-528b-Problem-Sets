@@ -306,7 +306,7 @@ gen lnwtwealth = log(wtwealth)
 
 /// COMPUTE POPULATION AND WEALTH SHARE VARIABLES
 // POPULATION SHARE
-*create new running ID2 sorted by wealth & ignore missing wealth values (assuming nonresponse is unbiased)
+*Create new running id sorted by wealth & ignore missing wealth values (assuming nonresponse is unbiased)
 sort wealth
 gen id = _n if wealth != .
 sum id
