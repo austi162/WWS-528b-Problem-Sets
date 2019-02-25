@@ -5,7 +5,7 @@
 ***************************************
 
 /* Last modified by: Chris Austin
-Last modified on: 2/22/19 */
+Last modified on: 2/25/19 */
 
 clear all
 
@@ -390,6 +390,8 @@ pause
 
 twoway bar wealthi popsharei, ysc(r(0 100))	
 
+pause
+
 ********************************************************************************
 **                                   P4                                       **
 ********************************************************************************
@@ -440,6 +442,7 @@ replace selfemp = 1 if selfemp >= 1
 
 *create new variable to store entrepreneurship share values for each percentile.
 gen selfempi = .
+labe var selfempi "Fraction of population who are entrepreneurs"
 
 forval i = 1/5 {
 	sum selfemp if popsharei == `i'
@@ -466,6 +469,7 @@ label values race rac
 
 *create new variable to store race share values for each percentile.
 gen racei = .
+labe var racei "Fraction of population who are white"
 
 forval i = 1/5 {
 	sum race if popsharei == `i'
@@ -474,5 +478,3 @@ forval i = 1/5 {
 	}
 
 twoway bar racei popsharei, ysc(r(0 1))	
-
-pause
