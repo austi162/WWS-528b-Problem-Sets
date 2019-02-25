@@ -355,7 +355,7 @@ pause
 gen popsharei = .
 replace popsharei = 1 if popshare <= 50
 replace popsharei = 2 if popshare > 50 & popshare <= 90
-replace popsharei = 3 if popshare > 90
+replace popsharei = 3 if popshare > 90 & popshare <= 99
 replace popsharei = 4 if popshare > 99   
 replace popsharei = 5 if popshare > 99.9
 replace popsharei = . if popshare == .
@@ -364,8 +364,8 @@ label var popsharei "Population quantiles"
 # delimit ;
 label define popsharei_lbl 
 	1 "50 percentile" 
-	2 "Next 40 percentile"
-	3 "Top 10 percentile"
+	2 "Next 40 percent"
+	3 "90-99 percent"
 	4 "Top 1 percentile"
 	5 "Top 0.1 percentile"
 ;
@@ -436,7 +436,7 @@ label values selfemp selfemp
 label values selfemp_s selfemp
 label variable selfemp "R working for someone else or self-employed?"
 label variable selfemp_s "Spouse/partner working for someone else or self-employed?"
-replace selfemp = 1 if selfemp > 1
+replace selfemp = 1 if selfemp >= 1
 
 *create new variable to store entrepreneurship share values for each percentile.
 gen selfempi = .
