@@ -21,7 +21,6 @@ capture log close
 pause on
 log using 582b_PS1_Chris, replace
 
-
 // DEFINE AND KEEP RELEVANT ASSETS AND LIABILITIES
 * Exclude the rest, including J-codes for imputed values associated with missing 
 *values.
@@ -300,9 +299,22 @@ gen liabilities = Credit + Cline + VehLoan + EduLoans + OthCLoan + Mortgage + Ho
 
 *Generate wealth and log wealth variables
 gen wealth = assets - liabilities
-gen wtwealth = X42001*wealth
-gen lnwealth = log(wealth)
-gen lnwtwealth = log(wtwealth)
+
+
+/*Revised Kennickell-Woodburn consistent weight: accounts for systemative 
+deviations from CPS estimates of homeownership by racial/ethnic Groups. This 
+weight should be used for all estimations using the final 2016 SCF data for 
+which weights are appropriate.
+ 
+Users should be aware that the population defined by the weights for 
+*each implicate* (see above) is 126.0 million households: the sum of each of 
+the weights over all sample cases and imputation replicates is equal to five 
+times the number of households in the sample universe.
+
+Begin by dividing the weight (X42001) by 5 so that the sum of the weights 
+across all five implicates equals the correct population total.
+*/
+gen weight = X42001/5
 
 /// COMPUTE POPULATION AND WEALTH SHARE VARIABLES
 // POPULATION SHARE
@@ -314,15 +326,23 @@ gen popshare = id/`r(max)'*100
 label variable popshare "Percent of population"
 
 // WEALTH SHARE
-*First compute each person's share of wealth
-qui egen totalwealth = total(wealth)
+*First compute each observation's weighted wealth for each percentile
+
+gen wealthwt = .
+forval i = 1(.1)100 {
+	_pctile wealth [pweight=weight], p(`i')
+	replace wealthwt = `r(r1)' if popshare >= `i' & popshare != .
+	}
+
+*Now determine each observation's share of total wealth
 sort wealth
-gen wealth1 = (wealth/totalwealth)*100
+qui egen totalwealth = total(wealthwt) if wealthwt != .
+gen wealth1 = (wealthwt/totalwealth)*100
 
 *Now generate cumulative wealthshare variable
 gen wealthshare = .
 forval i = 1/100 {
-	replace wealthshare = sum(wealth1) if popshare <= `i'
+	replace wealthshare = sum(wealth1) if popshare <= `i' & popshare != .
 	}
 label variable wealthshare "Percent of wealth"
 
@@ -340,6 +360,8 @@ histogram wealth if popshare <= 95
 pause
 
 *(b) the logarithm of wealth:
+gen lnwealth = log(wealthwt) if wealthwt != .
+
 histogram lnwealth
 
 pause
@@ -402,7 +424,7 @@ pause
 
 *Compare with Lorenz Curve stata package.
 ssc install lorenz
-lorenz estimate wealth
+lorenz estimate wealthwt
 lorenz graph, aspectratio(1) xlabel(, grid)
 
 pause
@@ -416,11 +438,12 @@ pause
 *straight line. The plot you will generate will most likely have the feature that the Pareto
 *relationship breaks down for high enough wealth levels. Why?
 
-*Create log(1-F(w)), where F9w) is the cumulative distribution function of wealth.
-gen topshare = .
-replace topshare = (1-wealthshare/100) if wealthshare >= 90
+*Create log(1-F(w)), where F(w) is the cumulative distribution function of wealth.
 
-twoway scatter topshare lnwealth if wealthshare >= 90
+sort wealthshare
+gen topshare = .
+replace topshare = (1-wealthshare/100) if wealthshare != .
+scatter topshare lnwealth if topshare <= .1
 pause
 
 ********************************************************************************
