@@ -336,13 +336,13 @@ forval i = 1(.1)100 {
 
 *Now determine each observation's share of total wealth
 sort wealth
-qui egen totalwealth = total(wealthwt) if wealthwt != .
+qui egen totalwealth = total(wealthwt) if wealthwt != . & wealthwt >= 0
 gen wealth1 = (wealthwt/totalwealth)*100
 
 *Now generate cumulative wealthshare variable
 gen wealthshare = .
 forval i = 1/100 {
-	replace wealthshare = sum(wealth1) if popshare <= `i' & popshare != .
+	replace wealthshare = sum(wealth1) if popshare <= `i' & popshare != . & popshare >= 0
 	}
 label variable wealthshare "Percent of wealth"
 
@@ -440,10 +440,11 @@ pause
 
 *Create log(1-F(w)), where F(w) is the cumulative distribution function of wealth.
 
-sort wealthshare
+sort wealthwt
 gen topshare = .
 replace topshare = (1-wealthshare/100) if wealthshare != .
-scatter topshare lnwealth if topshare <= .1
+scatter topshare lnwealth if popshare >= 90
+
 pause
 
 ********************************************************************************
