@@ -18,6 +18,8 @@ use p16i6
 set more off
 set matsize 10000
 capture log close
+ssc install blindschemes, replace all
+set scheme plotplain, permanently
 pause on
 log using 582b_PS1_Chris, replace
 
@@ -328,10 +330,10 @@ label variable popshare "Percent of population"
 // WEALTH SHARE
 *First compute each observation's weighted wealth for each percentile
 
-gen wealthwt = .
-forval i = 1(.1)100 {
+gen wealthwt1 = .
+forval i = 1(.01)100 {
 	_pctile wealth [pweight=weight], p(`i')
-	replace wealthwt = `r(r1)' if popshare >= `i' & popshare != .
+	replace wealthwt1 = `r(r1)' if popshare >= `i' & popshare != .
 	}
 
 *Now determine each observation's share of total wealth
@@ -355,12 +357,14 @@ pause
 
 *(a) the level of wealth (only plot up to the 95th percentile, 
 *otherwise the graph will be hard to read):
-histogram wealth if popshare <= 95
+
+histogram wealth if popshare <= 95 
 
 pause
 
 *(b) the logarithm of wealth:
-gen lnwealth = log(wealthwt) if wealthwt != .
+gen lnwealth = .
+replace lnwealth = log(wealthwt) if wealthwt != .
 
 histogram lnwealth
 
@@ -410,7 +414,7 @@ pause
 *to the “dwarves and giants” feature). At the end, your answers to question 2, 6 and 7
 *can be summarized in a table like Table 1 below.
 
-twoway bar wealthi popsharei, ysc(r(0 100))	
+graph bar (mean) wealthi, over(popsharei) ysc(r(0 40)) ytitle(Wealth) title(Wealth Share Quantile) bar(1, color(22 150 210))
 
 pause
 
@@ -418,14 +422,14 @@ pause
 **                                   P4                                       **
 ********************************************************************************
 // GRAPH LORENZ CURVE
-line wealthshare popshare if inrange(popshare, 0, 100), aspectratio(1)||(function y=x, range(0 100))
+line wealthshare popshare if inrange(popshare, 0, 100), lcolor("22 150 210") aspectratio(1) ||(function y=x, range(0 100) lcolor(grey)),legend(order(1 "Lorenz Curve" 2 "45 degree line"))  
 
 pause 
 
 *Compare with Lorenz Curve stata package.
 ssc install lorenz
 lorenz estimate wealthwt
-lorenz graph, aspectratio(1) xlabel(, grid)
+lorenz graph, aspectratio(1) xlabel(, grid) lcolor("22 150 210")
 
 pause
 
@@ -440,10 +444,9 @@ pause
 
 *Create log(1-F(w)), where F(w) is the cumulative distribution function of wealth.
 
-sort wealthwt
 gen topshare = .
 replace topshare = (1-wealthshare/100) if wealthshare != .
-scatter topshare lnwealth if popshare >= 90
+scatter topshare lnwealth if popshare >= 90, mcolor("22 150 210") || lfit topshare lnwealth if lnwealth > 14 & lnwealth < 17, lcolor(black)
 
 pause
 
@@ -474,8 +477,8 @@ forval i = 1/5 {
 	replace selfempi = `r(mean)' if popsharei == `i'
 	}
 
-twoway bar selfempi popsharei, ysc(r(0 1))	
-	
+graph bar (mean) selfempi, over(popsharei) ysc(r(0 1)) bar(1, color(22 150 210))
+
 pause
 
 ********************************************************************************
@@ -500,5 +503,5 @@ forval i = 1/5 {
 	di `r(mean)'
 	replace racei = `r(mean)' if popsharei == `i'
 	}
-
-twoway bar racei popsharei, ysc(r(0 1))	
+	
+graph bar (mean) racei, over(popsharei) ysc(r(0 1)) bar(1, color(22 150 210)) 
