@@ -330,21 +330,21 @@ label variable popshare "Percent of population"
 // WEALTH SHARE
 *First compute each observation's weighted wealth for each percentile
 
-gen wealthwt1 = .
+gen wealthwt = .
 forval i = 1(.01)100 {
 	_pctile wealth [pweight=weight], p(`i')
-	replace wealthwt1 = `r(r1)' if popshare >= `i' & popshare != .
+	replace wealthwt = `r(r1)' if popshare >= `i' & popshare != .
 	}
 
 *Now determine each observation's share of total wealth
 sort wealth
-qui egen totalwealth = total(wealthwt) if wealthwt != . & wealthwt >= 0
+qui egen totalwealth = total(wealthwt) if wealthwt != .
 gen wealth1 = (wealthwt/totalwealth)*100
 
 *Now generate cumulative wealthshare variable
 gen wealthshare = .
 forval i = 1/100 {
-	replace wealthshare = sum(wealth1) if popshare <= `i' & popshare != . & popshare >= 0
+	replace wealthshare = sum(wealth1) if popshare <= `i' & popshare != .
 	}
 label variable wealthshare "Percent of wealth"
 
