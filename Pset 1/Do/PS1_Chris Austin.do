@@ -331,7 +331,7 @@ label variable popshare "Percent of population"
 *First compute each observation's weighted wealth for each percentile
 
 gen wealthwt = .
-forval i = 1(.01)100 {
+forval i = 1(.1)100 {
 	_pctile wealth [pweight=weight], p(`i')
 	replace wealthwt = `r(r1)' if popshare >= `i' & popshare != .
 	}
@@ -422,7 +422,7 @@ pause
 **                                   P4                                       **
 ********************************************************************************
 // GRAPH LORENZ CURVE
-line wealthshare popshare if inrange(popshare, 0, 100), lcolor("22 150 210") aspectratio(1) ||(function y=x, range(0 100) lcolor(grey)),legend(order(1 "Lorenz Curve" 2 "45 degree line"))  
+line wealthshare popshare if inrange(popshare, 0, 100), lcolor("22 150 210") aspectratio(1) ||(function y=x, range(0 100) lcolor(grey)),legend(order(1 "Lorenz Curve" 2 "45 degree line")) ytitle("Wealth Share") xtitle("Population Share") title("Lorenz Curve") 
 
 pause 
 
