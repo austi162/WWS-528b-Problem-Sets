@@ -26,6 +26,7 @@ log using 582b_PS1_Chris, replace
 // DEFINE AND KEEP RELEVANT ASSETS AND LIABILITIES
 * Exclude the rest, including J-codes for imputed values associated with missing 
 *values.
+
 # delimit ;
 keep Y1
 	X3721
@@ -331,8 +332,8 @@ label variable popshare "Percent of population"
 *First compute each observation's weighted wealth for each percentile
 
 gen wealthwt = .
-forval i = 1(.1)100 {
-	_pctile wealth [pweight=weight], p(`i')
+forval i = 1(.01)100 {
+	_pctile wealth [pw=weight], p(`i')
 	replace wealthwt = `r(r1)' if popshare >= `i' & popshare != .
 	}
 
@@ -343,9 +344,7 @@ gen wealth1 = (wealthwt/totalwealth)*100
 
 *Now generate cumulative wealthshare variable
 gen wealthshare = .
-forval i = 1/100 {
-	replace wealthshare = sum(wealth1) if popshare <= `i' & popshare != .
-	}
+replace wealthshare = sum(wealth1) if popshare != .
 label variable wealthshare "Percent of wealth"
 
 pause
@@ -414,7 +413,7 @@ pause
 *to the “dwarves and giants” feature). At the end, your answers to question 2, 6 and 7
 *can be summarized in a table like Table 1 below.
 
-graph bar (mean) wealthi, over(popsharei) ysc(r(0 40)) ytitle(Wealth) title(Wealth Share Quantile) bar(1, color(22 150 210))
+graph bar (mean) wealthi, over(popsharei, relabel(1 "Bottom 50%" 2 "Next 40%" 3 "Next 9%" 4 "Top 1%" 5 "Top 0.1%")) ysc(r(0 40)) ytitle(Wealth) title(Wealth Share Quantile) bar(1, color(22 150 210))
 
 pause
 
@@ -446,7 +445,7 @@ pause
 
 gen topshare = .
 replace topshare = (1-wealthshare/100) if wealthshare != .
-scatter topshare lnwealth if popshare >= 90, mcolor("22 150 210") || lfit topshare lnwealth if lnwealth > 14 & lnwealth < 17, lcolor(black)
+scatter topshare lnwealth if popshare >= 90, mcolor("22 150 210")legend(order(2 "Fitted Values")) ytitle("1-F(Net Wealth)") xtitle("Log Net Wealth") title("NetWealth >= exp(14)") msymbol(smcircle) || lfit topshare lnwealth if lnwealth > 14 & lnwealth < 17.5, lcolor(black)
 
 pause
 
@@ -477,7 +476,7 @@ forval i = 1/5 {
 	replace selfempi = `r(mean)' if popsharei == `i'
 	}
 
-graph bar (mean) selfempi, over(popsharei) ysc(r(0 1)) bar(1, color(22 150 210))
+graph bar (mean) selfempi [pw=weight], over(popsharei, relabel(1 "Bottom 50%" 2 "Next 40%" 3 "Next 9%" 4 "Top 1%" 5 "Top 0.1%")) ysc(r(0 1)) bar(1, color(22 150 210)) ytitle("Fraction Self-employed")
 
 pause
 
@@ -504,4 +503,11 @@ forval i = 1/5 {
 	replace racei = `r(mean)' if popsharei == `i'
 	}
 	
-graph bar (mean) racei, over(popsharei) ysc(r(0 1)) bar(1, color(22 150 210)) 
+graph bar (mean) racei [pw=weight], over(popsharei, relabel(1 "Bottom 50%" 2 "Next 40%" 3 "Next 9%" 4 "Top 1%" 5 "Top 0.1%")) ysc(r(0 1)) bar(1, color(22 150 210)) ytitle("Fraction White")
+
+
+	
+	
+	
+	
+
