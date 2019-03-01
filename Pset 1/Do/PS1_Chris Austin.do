@@ -31,14 +31,15 @@ log using 582b_PS1_Chris, replace
 keep Y1
 	X3721
 	X3506 X3510 X3514 X3518 X3522 X3526 X3529 
-	X3730 X3736 X3742 X3748 X3754 X3765 
+	X3730 X3736 X3742 X3748 X3754 X3760 X3765 
 	X3822 X3824 X3826 X3828 X3830 X7787 X6704 
 	X3902 X7635 X7636 X7637 X7638 X7639 X6706 
 	X3915 X3930 X3932 
 	X6577 X6587 
 	X604 X614 X623 X716 X1705 X1706 X1805 X1806 X2002 X2012 
-	X513 X526 X3124 X3224 X3129 X3229 X3335 X3408 X3412 X3416 X3420 X3428 
+	X513 X526 X3124 X3224 X3129 X3229 X3335 X3408 X3412 X3452 X3416 X3420 X3428 
 		X3126 X3226 X3127 X3227 
+	X1306 X1325
 	X8166 X8167 X8168 X8188 X2422 X2506 X2606 X2623 
 	X6551 X6559 X6567 X6552 X6560 X6568 X6553 X6561 X6569 X6554 X6562 X6570 
 	 X6756 X6757 X6758 
@@ -79,8 +80,9 @@ replace X3736 = 0 if X3736 == -1
 replace X3742 = 0 if X3742 == -1
 replace X3748 = 0 if X3748 == -1
 replace X3754 = 0 if X3754 == -1
+replace X3760 = 0 if X3760 == -1
 replace X3765 = 0 if X3765 == -1
-gen Savings = X3730 + X3736 + X3742 + X3748 + X3754 + X3765
+gen Savings = X3730 + X3736 + X3742 + X3748 + X3754 + X3760 + X3765
 label variable Savings "Total amount in savings accounts"
 drop X3730 X3736 X3742 X3748 X3754 X3765
 
@@ -139,24 +141,31 @@ drop X3129 X3229 X3335
 *NON-ACTIVELY MANAGED BUSINESSES
 *What could you sell your shares for
 replace X3428 = 0 if X3428 == -1
-gen NABusiness = X3408 + X3412 + X3416 + X3420 + X3428
+gen NABusiness = X3408 + X3412 + X3452 + X3416 + X3420 + X3428
 label variable NABusiness "What could you sell your share of all non-actively managed businesses for?"
-drop X3408 X3412 X3416 X3420 X3428
+drop X3408 X3412 X3452 X3416 X3420 X3428
 
 *ACTIVELY MANAGED BUSINESSES
 *Amount the business owes R
 gen owedfrombus = X3124 + X3224
 label variable owedfrombus "Amount the business owes R"
 drop X3124 X3224
+
 *Amount owed to business; if recorded earlier, set to zero
 replace X3126 = 0 if X3127 == 1
 replace X3226 = 0 if X3227 == 1
 gen owetobus = X3126 + X3226
 label variable owetobus "Amount R owes business"
 drop X3126 X3226 X3127 X3227
+
 *Net amount owed to business
 gen netowedfrombus = owedfrombus - owetobus
 label variable netowedfrombus "Net amount business owes R" 
+
+// Money owed to R from outstanding loans to others
+gen Loanowed = X1306 + X1325
+label variable Loanowed "Loanowed"
+drop X1306 X1325
 
 // VEHICLES
 gen Vehicles = X8166 + X8167 + X8168 + X8188 + X2422 + X2506 + X2606 + X2623
@@ -166,9 +175,9 @@ drop X8166 X8167 X8168 X8188 X2422 X2506 X2606 X2623
 // RETIREMENT SAVINGS
 gen IRA = X6551 + X6559 + X6567 + X6552 + X6560 + X6568 + X6553 + X6561 + X6569 ///
 		  + X6554 + X6562 + X6570 + X6756 + X6757 + X6758
+label variable IRA "IRA, Roth IRA, roll-over IRA and Keogh accounts"
 drop X6551 X6559 X6567 X6552 X6560 X6568 X6553 X6561 X6569 X6554 X6562 X6570 ///
 	 X6756 X6757 X6758
-label variable IRA "IRA, Roth IRA, roll-over IRA and Keogh accounts"
 
 // LIFEINSURANCE
 *If life-insurance is net and loans are reported earlier, add them back
