@@ -366,7 +366,7 @@ pause
 *(a) the level of wealth (only plot up to the 95th percentile, 
 *otherwise the graph will be hard to read):
 
-histogram wealth if popshare <= 95 
+twoway (histogram wealth if popshare <= 95, color("22 150 210") ytitle("Frequency") xtitle("Level of Net Wealth") title("Level of Net Wealth"))
 
 pause
 
@@ -374,7 +374,7 @@ pause
 gen lnwealth = .
 replace lnwealth = log(wealthwt) if wealthwt != .
 
-histogram lnwealth
+twoway (histogram lnwealth, color("22 150 210") ytitle("Frequency") xtitle("Log of Net Wealth") title("Log of Net Wealth"))
 
 pause
 
