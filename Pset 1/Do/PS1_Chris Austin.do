@@ -366,7 +366,7 @@ pause
 *(a) the level of wealth (only plot up to the 95th percentile, 
 *otherwise the graph will be hard to read):
 
-twoway (histogram wealth if popshare <= 95, color("22 150 210") ytitle("Frequency") xtitle("Level of Net Wealth") title("Level of Net Wealth"))
+twoway (histogram wealth if popshare <= 95, color("22 150 210") ytitle("Density") xtitle("Level of Net Wealth") title("Level of Net Wealth"))
 
 pause
 
@@ -374,7 +374,7 @@ pause
 gen lnwealth = .
 replace lnwealth = log(wealthwt) if wealthwt != .
 
-twoway (histogram lnwealth, color("22 150 210") ytitle("Frequency") xtitle("Log of Net Wealth") title("Log of Net Wealth"))
+twoway (histogram lnwealth, color("22 150 210") ytitle("Density") xtitle("Log of Net Wealth") title("Log of Net Wealth"))
 
 pause
 
@@ -422,7 +422,7 @@ pause
 *to the “dwarves and giants” feature). At the end, your answers to question 2, 6 and 7
 *can be summarized in a table like Table 1 below.
 
-graph bar (mean) wealthi, over(popsharei, relabel(1 "Bottom 50%" 2 "Next 40%" 3 "Next 9%" 4 "Top 1%" 5 "Top 0.1%")) ysc(r(0 40)) ytitle(Wealth) title(Wealth Share Quantile) bar(1, color(22 150 210))
+graph bar (mean) wealthi, over(popsharei, relabel(1 "Bottom 50%" 2 "Next 40%" 3 "Next 9%" 4 "Top 1%" 5 "Top 0.1%")) ysc(r(0 40)) ytitle(Wealth Share) title(Wealth Share Quantile) bar(1, color(22 150 210))
 
 pause
 
@@ -513,10 +513,3 @@ forval i = 1/5 {
 	}
 	
 graph bar (mean) racei [pw=weight], over(popsharei, relabel(1 "Bottom 50%" 2 "Next 40%" 3 "Next 9%" 4 "Top 1%" 5 "Top 0.1%")) ysc(r(0 1)) bar(1, color(22 150 210)) ytitle("Fraction White")
-
-
-	
-	
-	
-	
-
