@@ -20,6 +20,9 @@ set matsize 10000
 capture log close
 ssc install blindschemes, replace all
 set scheme plotplain, permanently
+ssc install pshare
+ssc install lorenz
+ssc install tabout
 pause on
 log using 582b_PS1_Chris, replace
 
@@ -39,21 +42,23 @@ keep Y1
 	X604 X614 X623 X716 X1705 X1706 X1805 X1806 X2002 X2012 
 	X513 X526 X3124 X3224 X3129 X3229 X3335 X3408 X3412 X3452 X3416 X3420 X3428 
 		X3126 X3226 X3127 X3227 
-	X1306 X1325
+	X1306 X1325 X1339 X1318 X1337 X1341
 	X8166 X8167 X8168 X8188 X2422 X2506 X2606 X2623 
 	X6551 X6559 X6567 X6552 X6560 X6568 X6553 X6561 X6569 X6554 X6562 X6570 
 	 X6756 X6757 X6758 
 	X4006 X4008 X4009 X4010 
 	X4018 X4022 X4026 X4030 X4032 
-	X11032 X11132 X11332 X11432 X11259 X11559 X11027 X11127 X11327 X11427 X11033 
-		X11133 X11333 X11433 X11070 X11170 X11270 X11370 X11470 X11570 
+	X11032 X11132 X11332 X11432 X11259 X11559 X11027 X11127
+	 X11327 X11427  X11033 X11133 X11333 X11433
+	 X11070 X11170 X11270 X11370 X11470
+	X6462 X6467 X6472 X6477 X6958 X6957 X5604 X5612 X5620 X5628 X6997
 	X413 X421 X427 X7575 
 	X1108 X1119 X1130 X1136 
 	X2218 X2318 X2418 X7169 X2424 X2519 X2619 X2625 
 	X7824 X7847 X7870 X7924 X7947 X7970 X7179 
 	X2723 X2740 X2823 X2840 X2923 X2940 X7183 
 	X805 X905 X1005 X1044 X1215 X1219 X1715 X1815 X2006 X2016 
-	X42001 X6809 X4106 X4706
+	X42001 X6809 X4106 X4706 X6810
 	;
 # delimit cr
 
@@ -163,9 +168,9 @@ gen netowedfrombus = owedfrombus - owetobus
 label variable netowedfrombus "Net amount business owes R" 
 
 // Money owed to R from outstanding loans to others
-gen Loanowed = X1306 + X1325
+gen Loanowed = X1306 + X1325 + X1339 - X1318 - X1337 - X1341
 label variable Loanowed "Loanowed"
-drop X1306 X1325
+drop X1306 X1325 X1339 X1318 X1337 X1341
 
 // VEHICLES
 gen Vehicles = X8166 + X8167 + X8168 + X8188 + X2422 + X2506 + X2606 + X2623
@@ -192,20 +197,17 @@ drop X4008 X4009 X4010
 gen MiscAssets = X4018 + X4022 + X4026 + X4030 - X4032
 label variable MiscAssets "Miscellaneous assets minus debts"
 drop X4018 X4022 X4026 X4030 X4032
-
+	 
 // PENSIONS FOR HEAD AND SPOUSE FROM CURRENT MAIN JOB
-*Generate gross amounts
-replace X11032 = 0 if X11032 == -1
-replace X11132 = 0 if X11132 == -1
-replace X11332 = 0 if X11332 == -1
-replace X11432 = 0 if X11432 == -1
-replace X11259 = 0 if X11259 == -1
-replace X11559 = 0 if X11559 == -1
+*Gen gross amounts
+foreach var of varlist X11032 X11132 X11332 X11432 X11259 X11559 {
+replace `var'=0 if `var'==-1
+}
 replace X11032 = X11032 + X11027 if X11033 == 1
 replace X11132 = X11132 + X11127 if X11133 == 1
 replace X11332 = X11332 + X11327 if X11333 == 1
 replace X11432 = X11432 + X11427 if X11433 == 1
-*If loan isn't already recorded, need to remove it
+// If loan isn't already recorded, need to remove it
 replace X11032 = X11032 - X11027 if X11070 == 5
 replace X11132 = X11132 - X11127 if X11170 == 5
 replace X11332 = X11332 - X11327 if X11370 == 5
@@ -213,8 +215,17 @@ replace X11432 = X11432 - X11427 if X11470 == 5
 gen Pension1 = X11032 + X11132 + X11332 + X11432 + X11259 + X11559
 label variable Pension1 "Pension from current main job"
 drop X11032 X11132 X11332 X11432 X11259 X11559 X11027 X11127 ///
-	 X11327 X11427 X11033 X11133 X11333 X11433 ///
-	 X11070 X11170 X11270 X11370 X11470 X11570
+	 X11327 X11427  X11033 X11133 X11333 X11433 ///
+	 X11070 X11170 X11270 X11370 X11470
+	 
+// CURRENT BENEFITS FROM PENSIONS
+foreach var of varlist X6462 X6467 X6472 X6477 X6958 X6957 X5604 X5612 X5620 X5628 X6997{
+replace `var'=0 if `var'==-1
+}
+gen Pension2 = X6462 + X6467 + X6472 + X6477 + X6958 + X6957 + X5604 + X5612 ///
+				+ X5620 + X5628 + X6997 
+label variable Pension2 "Current and future pension benefits"
+drop X6462 X6467 X6472 X6477 X6958 X6957 X5604 X5612 X5620 X5628 X6997 
 
 // CREDIT CARD DEBT; STORE CREDIT OUTSTANDING X7575
 /* Recode zeros to zeros, missing is zero as well. Topcoding is 999,999 and is 
@@ -251,7 +262,6 @@ rename X2519 vehloan5
 label variable vehloan5 "Owed on vehicle loan 5"
 rename X2619 vehloan6
 label variable vehloan6 "Owed on vehicle loan 6"
-drop X2424 X2625
 
 // EDUCATION LOANS
 gen EduLoans = X7824 + X7847 + X7870 + X7924 + X7947 + X7970 + X7179
@@ -300,7 +310,7 @@ drop X1715 X1815 X2006 X2016
 *CDs Checking Bonds NABusiness MiscAssets Stocks Pension1 ATMIA Credit 
 *Homeimploan LifeInsurance Investprop netowedfrombus Savings Farm Vehicles 
 *MutualFund ActBusiness IRA
-gen assets = CDs + Checking + Bonds + NABusiness + MiscAssets + Stocks + Pension1 + ATMIA + Credit + Homeimploan + LifeInsurance + Investprop + netowedfrombus + Savings + Farm + Vehicles + MutualFund + ActBusiness + IRA
+gen assets = CDs + Checking + Bonds + NABusiness + MiscAssets + Stocks + Pension1 + Pension2 + ATMIA + Credit + Homeimploan + LifeInsurance + Investprop + netowedfrombus + Savings + Farm + Vehicles + MutualFund + ActBusiness + IRA
 
 **Liabilities
 *Credit Cline cline1 cline2 cline3 cline4 VehLoan vehloan1 vehloan2 vehloan3 
@@ -328,6 +338,7 @@ across all five implicates equals the correct population total.
 */
 gen weight = X42001/5
 
+
 /// COMPUTE POPULATION AND WEALTH SHARE VARIABLES
 // POPULATION SHARE
 *Create new running id sorted by wealth & ignore missing wealth values (assuming nonresponse is unbiased)
@@ -341,7 +352,7 @@ label variable popshare "Percent of population"
 *First compute each observation's weighted wealth for each percentile
 
 gen wealthwt = .
-forval i = 1(.01)100 {
+forval i = 1(.1)100 {
 	_pctile wealth [pw=weight], p(`i')
 	replace wealthwt = `r(r1)' if popshare >= `i' & popshare != .
 	}
@@ -366,7 +377,7 @@ pause
 *(a) the level of wealth (only plot up to the 95th percentile, 
 *otherwise the graph will be hard to read):
 
-twoway (histogram wealth if popshare <= 95, color("22 150 210") ytitle("Density") xtitle("Level of Net Wealth") title("Level of Net Wealth"))
+twoway (histogram wealthwt if popshare <= 95, color("22 150 210") ytitle("Density") xtitle("Level of Net Wealth") title("Level of Net Wealth"))
 
 pause
 
@@ -385,35 +396,32 @@ pause
 *(c) the next 9 percent, (d) the top 1 percent, (e) the top 0.1 percent of households in the
 *sample.
 
-*Make indicator for distinct percentiles requested in problemset.
-gen popsharei = .
-replace popsharei = 1 if popshare <= 50
-replace popsharei = 2 if popshare > 50 & popshare <= 90
-replace popsharei = 3 if popshare > 90 & popshare <= 99
-replace popsharei = 4 if popshare > 99   
-replace popsharei = 5 if popshare > 99.9
-replace popsharei = . if popshare == .
-label var popsharei "Population quantiles"
+*Method 1, Share of Wealth 
+sort wealthwt
+pshare estimate wealthwt, p(50 90 99)
+pshare estimate wealthwt, p(99.9 100)
+  
+ *Create dummies for groups, used later in do file
+gen cat1 = .
+replace cat1 = 1 if popshare<=50
+label variable cat1 "50 percentile"
+ 
+gen cat2 = .
+replace cat2 = 1 if popshare > 50 & popshare <= 90
+label variable cat2 "Next 40 percent"
 
-# delimit ;
-label define popsharei_lbl 
-	1 "50 percentile" 
-	2 "Next 40 percent"
-	3 "90-99 percent"
-	4 "Top 1 percentile"
-	5 "Top 0.1 percentile"
-;
-# delimit cr
+gen cat3 = .
+replace cat3 = 1 if popshare > 90 & popshare <= 99
+label variable cat3 "90-99 percent"
 
-gen wealthi = .
+gen cat4 = .
+replace cat4 = 1 if popshare > 99
+label variable cat4 "Top 1 percentile"
 
-forval i = 1/5 {
-	su wealth1 if popsharei == `i'
-	replace wealthi = `r(sum)' if popsharei == `i'
-	di `r(sum)'
-	}
+gen cat5 = .
+replace cat5 = 1 if popshare > 99.9
+label variable cat1 "Top 0.1 percentile"
 
-pause 
 
 ********************************************************************************
 **                                   P3                                       **
@@ -421,8 +429,9 @@ pause
 *Plot the quantile function (you will likely have to cut the y-axis to make it readable due
 *to the “dwarves and giants” feature). At the end, your answers to question 2, 6 and 7
 *can be summarized in a table like Table 1 below.
-
-graph bar (mean) wealthi, over(popsharei, relabel(1 "Bottom 50%" 2 "Next 40%" 3 "Next 9%" 4 "Top 1%" 5 "Top 0.1%")) ysc(r(0 40)) ytitle(Wealth Share) title(Wealth Share Quantile) bar(1, color(22 150 210))
+sort wealthwt
+pshare estimate wealthwt, nquantiles(100)
+pshare histogram,  ylabel(0(0.1)0.4, angle(hor)) color("22 150 210") ytitle("Share of Wealth") xtitle("Population Percentile") ti("Wealth Distribution") noci
 
 pause
 
@@ -435,7 +444,6 @@ line wealthshare popshare if inrange(popshare, 0, 100), lcolor("22 150 210") asp
 pause 
 
 *Compare with Lorenz Curve stata package.
-ssc install lorenz
 lorenz estimate wealthwt
 lorenz graph, aspectratio(1) xlabel(, grid) lcolor("22 150 210")
 
@@ -467,26 +475,15 @@ pause
 *answer to Table 1.
 
 // EMPLOYMENT STATUS
-rename X4106 selfemp
-rename X4706 selfemp_s
-label values selfemp selfemp
-label values selfemp_s selfemp
-label variable selfemp "R working for someone else or self-employed?"
-label variable selfemp_s "Spouse/partner working for someone else or self-employed?"
-replace selfemp = 1 if selfemp >= 1
 
-*create new variable to store entrepreneurship share values for each percentile.
-gen selfempi = .
-labe var selfempi "Fraction of population who are entrepreneurs"
+gen selfemp=.
+replace selfemp=0 if popshare!=.
+replace selfemp=1 if X4106>1 | X4706>1
+label var selfemp "Employed"
 
-forval i = 1/5 {
-	sum selfemp if popsharei == `i'
-	di `r(mean)'
-	replace selfempi = `r(mean)' if popsharei == `i'
-	}
-
-graph bar (mean) selfempi [pw=weight], over(popsharei, relabel(1 "Bottom 50%" 2 "Next 40%" 3 "Next 9%" 4 "Top 1%" 5 "Top 0.1%")) ysc(r(0 1)) bar(1, color(22 150 210)) ytitle("Fraction Self-employed")
-
+tabout cat1 cat2 cat3 cat4 cat5 selfemp ///
+	using table3.xls, replace c(row)
+	
 pause
 
 ********************************************************************************
@@ -497,19 +494,18 @@ pause
 *as “white.” From the codebook, the right variable variable seems to be X6809 but you
 *may want to double-check this. Add your answer to Table 1.
 // RACE
-rename X6809 race	
-replace race = 0 if race != 1 
-label define rac 0 "Other" 1 "White"
-label values race rac
+gen white_1=.
+replace white_1=0 if popshare!=.
+replace white_1=1 if X6809==1
+label var white_1 "Self ID White"
 
-*create new variable to store race share values for each percentile.
-gen racei = .
-labe var racei "Fraction of population who are white"
+gen white_2=.
+replace white_2=0 if popshare!=.
+replace white_2=1 if X6809==1 | X6810==1
+label var white_2 "Self ID White Expanded"
 
-forval i = 1/5 {
-	sum race if popsharei == `i'
-	di `r(mean)'
-	replace racei = `r(mean)' if popsharei == `i'
-	}
-	
-graph bar (mean) racei [pw=weight], over(popsharei, relabel(1 "Bottom 50%" 2 "Next 40%" 3 "Next 9%" 4 "Top 1%" 5 "Top 0.1%")) ysc(r(0 1)) bar(1, color(22 150 210)) ytitle("Fraction White")
+*Model 1 
+tabout cat1 cat2 cat3 cat4 cat5 white_1 using table4.xls, show(all) replace c(row) 
+
+*Model 2
+tabout cat1 cat2 cat3 cat4 cat5 white_2 using table4.xls, show(all) append c(row)
