@@ -310,14 +310,18 @@ drop X1715 X1815 X2006 X2016
 *CDs Checking Bonds NABusiness MiscAssets Stocks Pension1 ATMIA Credit 
 *Homeimploan LifeInsurance Investprop netowedfrombus Savings Farm Vehicles 
 *MutualFund ActBusiness IRA
-gen assets = CDs + Checking + Bonds + NABusiness + MiscAssets + Stocks + Pension1 + Pension2 + ATMIA + Credit + Homeimploan + LifeInsurance + Investprop + netowedfrombus + Savings + Farm + Vehicles + MutualFund + ActBusiness + IRA
+gen assets = CDs + Checking + Bonds + NABusiness + MiscAssets + Stocks + ///
+	Pension1 + Pension2 + ATMIA + Credit + Homeimploan + LifeInsurance + ///
+	Investprop + netowedfrombus + Savings + Farm + Vehicles + MutualFund ///
+	+ ActBusiness + IRA
 
 **Liabilities
 *Credit Cline cline1 cline2 cline3 cline4 VehLoan vehloan1 vehloan2 vehloan3 
 *vehloan4 vehloan5 vehloan6 EduLoans eduloan1 eduloan2 eduloan3 eduloan4 eduloan5 
 *eduloan6 OthCLoan Mortgage mortgage2 mortgage3 mortgage4 Homeimploan Investproploans
 *Credit Cline VehLoan EduLoans OthCLoan Mortgage Homeimploan Investproploans
-gen liabilities = Credit + Cline + VehLoan + EduLoans + OthCLoan + Mortgage + Homeimploan + Investproploans
+gen liabilities = Credit + Cline + VehLoan + EduLoans + OthCLoan + Mortgage ///
+	+ Homeimploan + Investproploans
 
 *Generate wealth and log wealth variables
 gen wealth = assets - liabilities
@@ -338,10 +342,11 @@ across all five implicates equals the correct population total.
 */
 gen weight = X42001/5
 
-
 /// COMPUTE POPULATION AND WEALTH SHARE VARIABLES
 // POPULATION SHARE
-*Create new running id sorted by wealth & ignore missing wealth values (assuming nonresponse is unbiased)
+*Create new running id sorted by wealth & ignore missing wealth values (assuming 
+*nonresponse is unbiased)
+
 sort wealth
 gen id = _n if wealth != .
 sum id
@@ -352,7 +357,7 @@ label variable popshare "Percent of population"
 *First compute each observation's weighted wealth for each percentile
 
 gen wealthwt = .
-forval i = 1(.1)100 {
+forval i = 1(.001)100 {
 	_pctile wealth [pw=weight], p(`i')
 	replace wealthwt = `r(r1)' if popshare >= `i' & popshare != .
 	}
@@ -377,24 +382,27 @@ pause
 *(a) the level of wealth (only plot up to the 95th percentile, 
 *otherwise the graph will be hard to read):
 
-twoway (histogram wealthwt if popshare <= 95, color("22 150 210") ytitle("Density") xtitle("Level of Net Wealth") title("Level of Net Wealth"))
-
+twoway (histogram wealthwt if popshare <= 95, color("22 150 210") ///
+	xlab(, nogrid) ylab(, nogrid) ytitle("Density") xtitle("Level of Net Wealth") ///
+	title("Level of Net Wealth through 95 Percentile"))
+	
 pause
 
 *(b) the logarithm of wealth:
 gen lnwealth = .
 replace lnwealth = log(wealthwt) if wealthwt != .
 
-twoway (histogram lnwealth, color("22 150 210") ytitle("Density") xtitle("Log of Net Wealth") title("Log of Net Wealth"))
+twoway (histogram lnwealth, color("22 150 210") xlab(, nogrid) ylab(, nogrid) ///
+	ytitle("Density") xtitle("Log of Net Wealth") title("Log of Net Wealth"))
 
 pause
 
 ********************************************************************************
 **                                   P2                                       **
 ********************************************************************************
-*Make a table with the wealth shares of (a) the bottom 50 percent, (b) the next 40 percent,
-*(c) the next 9 percent, (d) the top 1 percent, (e) the top 0.1 percent of households in the
-*sample.
+*Make a table with the wealth shares of (a) the bottom 50 percent, (b) the next 
+*40 percent,(c) the next 9 percent, (d) the top 1 percent, (e) the top 0.1 
+*percent of households in the sample.
 
 *Method 1, Share of Wealth 
 sort wealthwt
@@ -403,35 +411,48 @@ pshare estimate wealthwt, p(99.9 100)
   
  *Create dummies for groups, used later in do file
 gen cat1 = .
+replace cat1=0 if popshare!=.
 replace cat1 = 1 if popshare<=50
 label variable cat1 "50 percentile"
  
 gen cat2 = .
+replace cat2=0 if popshare!=.
 replace cat2 = 1 if popshare > 50 & popshare <= 90
 label variable cat2 "Next 40 percent"
 
 gen cat3 = .
+replace cat3=0 if popshare!=.
 replace cat3 = 1 if popshare > 90 & popshare <= 99
 label variable cat3 "90-99 percent"
 
 gen cat4 = .
+replace cat4=0 if popshare!=.
 replace cat4 = 1 if popshare > 99
 label variable cat4 "Top 1 percentile"
 
 gen cat5 = .
+replace cat5=0 if popshare!=.
 replace cat5 = 1 if popshare > 99.9
 label variable cat1 "Top 0.1 percentile"
+
 
 
 ********************************************************************************
 **                                   P3                                       **
 ********************************************************************************
-*Plot the quantile function (you will likely have to cut the y-axis to make it readable due
-*to the “dwarves and giants” feature). At the end, your answers to question 2, 6 and 7
-*can be summarized in a table like Table 1 below.
+*Plot the quantile function (you will likely have to cut the y-axis to make it 
+*readable due to the “dwarves and giants” feature). At the end, your answers to 
+*question 2, 6 and 7 can be summarized in a table like Table 1 below.
+
 sort wealthwt
-pshare estimate wealthwt, nquantiles(100)
-pshare histogram,  ylabel(0(0.1)0.4, angle(hor)) color("22 150 210") ytitle("Share of Wealth") xtitle("Population Percentile") ti("Wealth Distribution") noci
+
+twoway (bar wealthwt popshare if popshare <= 99, xsc(r(0 100)) ///
+	color("22 150 210") ytitle("Net Wealth") ylabel(, labsize(vsmall) nogrid) ///
+	xlab(,nogrid) xtitle("Population Percentile") ///
+	ti("Quantile Wealth Function through 99 Percentile")) ///
+	(bar wealthwt popshare if wealth1 < 0, ///
+	color("253 191 17") legend(order(1 "Positive Net Wealth" ///
+	2 "Negative Net Wealth")))
 
 pause
 
@@ -439,15 +460,12 @@ pause
 **                                   P4                                       **
 ********************************************************************************
 // GRAPH LORENZ CURVE
-line wealthshare popshare if inrange(popshare, 0, 100), lcolor("22 150 210") aspectratio(1) ||(function y=x, range(0 100) lcolor(grey)),legend(order(1 "Lorenz Curve" 2 "45 degree line")) ytitle("Wealth Share") xtitle("Population Share") title("Lorenz Curve") 
+line wealthshare popshare if inrange(popshare, 1, 100), lcolor("22 150 210") ///
+	aspectratio(1) xlab(, nogrid) ylab(, nogrid) ||(function y=x, range(0 100) ///
+	lcolor(grey)), legend(order (1 "Lorenz Curve" 2 "45 degree line")) ///
+	ytitle("Wealth Share") xtitle("Population Share") title("Lorenz Curve") 
 
 pause 
-
-*Compare with Lorenz Curve stata package.
-lorenz estimate wealthwt
-lorenz graph, aspectratio(1) xlabel(, grid) lcolor("22 150 210")
-
-pause
 
 ********************************************************************************
 **                                   P5                                       **
@@ -460,19 +478,24 @@ pause
 
 *Create log(1-F(w)), where F(w) is the cumulative distribution function of wealth.
 
+*Weighted log(1-F(w)
 gen topshare = .
-replace topshare = (1-wealthshare/100) if wealthshare != .
-scatter topshare lnwealth if popshare >= 90, mcolor("22 150 210")legend(order(2 "Fitted Values")) ytitle("1-F(Net Wealth)") xtitle("Log Net Wealth") title("NetWealth >= exp(14)") msymbol(smcircle) || lfit topshare lnwealth if lnwealth > 14 & lnwealth < 17.5, lcolor(black)
+replace topshare = log(1-wealthshare/100) if wealthshare != .
+
+scatter topshare lnwealth if popshare >= 90, ///
+	mcolor("22 150 210")legend(order(2 "Fitted Values")) xlab(, nogrid) ///
+	xtitle("Log Net Wealth") ylab(, nogrid) ytitle("Log(1-F(Net Wealth))") ///
+	title("Pareto Tail for Top 10 Percent") msymbol(smcircle)
 
 pause
 
 ********************************************************************************
 **                                   P6                                       **
 ********************************************************************************
-*Let’s assess what fraction of people in different parts of the wealth distribution are “en-
-*trepreneurs” broadly defined. To this end use the variable X4106. For each of the wealth
-*groups in question 2, calculate the fraction of people who are “entrepreneurs”. Add your
-*answer to Table 1.
+*Let’s assess what fraction of people in different parts of the wealth distribution 
+*are “entrepreneurs” broadly defined. To this end use the variable X4106. For 
+*each of the wealth groups in question 2, calculate the fraction of people who 
+*are “entrepreneurs”. Add your answer to Table 1.
 
 // EMPLOYMENT STATUS
 
@@ -482,17 +505,21 @@ replace selfemp=1 if X4106>1 | X4706>1
 label var selfemp "Employed"
 
 tabout cat1 cat2 cat3 cat4 cat5 selfemp ///
-	using table3.xls, replace c(row)
+	using table3.xls, show(all) replace c(row)
+	
+su selfemp
 	
 pause
 
 ********************************************************************************
 **                                   P7                                       **
 ********************************************************************************
-*Finally, repeat the exercise from the previous question but focusing on race. In particular,
-*report the fraction of people in different parts of the wealth distribution that self-identify
-*as “white.” From the codebook, the right variable variable seems to be X6809 but you
-*may want to double-check this. Add your answer to Table 1.
+*Finally, repeat the exercise from the previous question but focusing on race. 
+*In particular, report the fraction of people in different parts of the wealth 
+*distribution that self-identify as “white.” From the codebook, the right 
+*variable variable seems to be X6809 but you may want to double-check this. Add 
+*your answer to Table 1.
+
 // RACE
 gen white_1=.
 replace white_1=0 if popshare!=.
@@ -503,6 +530,8 @@ gen white_2=.
 replace white_2=0 if popshare!=.
 replace white_2=1 if X6809==1 | X6810==1
 label var white_2 "Self ID White Expanded"
+
+su white_1
 
 *Model 1 
 tabout cat1 cat2 cat3 cat4 cat5 white_1 using table4.xls, show(all) replace c(row) 
