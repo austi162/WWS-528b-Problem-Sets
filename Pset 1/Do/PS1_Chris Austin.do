@@ -1,532 +1,1510 @@
 ************* WWS582b PS1 *************
-*  Spring 2019			              *
+*  Spring 2019			      *
 *  Author : Chris Austin              *
 *  Email: chris.austin@princeton.edu  *
 ***************************************
 
 /* Last modified by: Chris Austin
-Last modified on: 3/11/19 */
+Last modified on: 5/14/19 */
 
 clear all
 
 set maxvar 32000
-
-*Set directory, dta file, etc.
-cd "C:\Users\Chris\Documents\Princeton\WWS Spring 2019\Economic Causes and Conesequences of Inequality\WWS-528b-Problem-Sets\Pset 1\Dta"
-use p16i6
-
 set more off
 set matsize 10000
 capture log close
 ssc install blindschemes, replace all
 set scheme plotplain, permanently
 ssc install pshare
-ssc install lorenz
-ssc install tabout
+ssc install synth
+
 pause on
-log using 582b_PS1_Chris, replace
 
-// DEFINE AND KEEP RELEVANT ASSETS AND LIABILITIES
-* Exclude the rest, including J-codes for imputed values associated with missing 
-*values.
+*Set directory, dta file, etc.
+cd "C:\Users\Chris\Documents\Princeton\WWS Spring 2019\Economic Causes and Conesequences of Inequality\Research Paper\Stata"
 
-# delimit ;
-keep Y1
-	X3721
-	X3506 X3510 X3514 X3518 X3522 X3526 X3529 
-	X3730 X3736 X3742 X3748 X3754 X3760 X3765 
-	X3822 X3824 X3826 X3828 X3830 X7787 X6704 
-	X3902 X7635 X7636 X7637 X7638 X7639 X6706 
-	X3915 X3930 X3932 
-	X6577 X6587 
-	X604 X614 X623 X716 X1705 X1706 X1805 X1806 X2002 X2012 
-	X513 X526 X3124 X3224 X3129 X3229 X3335 X3408 X3412 X3452 X3416 X3420 X3428 
-		X3126 X3226 X3127 X3227 
-	X1306 X1325 X1339 X1318 X1337 X1341
-	X8166 X8167 X8168 X8188 X2422 X2506 X2606 X2623 
-	X6551 X6559 X6567 X6552 X6560 X6568 X6553 X6561 X6569 X6554 X6562 X6570 
-	 X6756 X6757 X6758 
-	X4006 X4008 X4009 X4010 
-	X4018 X4022 X4026 X4030 X4032 
-	X11032 X11132 X11332 X11432 X11259 X11559 X11027 X11127
-	 X11327 X11427  X11033 X11133 X11333 X11433
-	 X11070 X11170 X11270 X11370 X11470
-	X6462 X6467 X6472 X6477 X6958 X6957 X5604 X5612 X5620 X5628 X6997
-	X413 X421 X427 X7575 
-	X1108 X1119 X1130 X1136 
-	X2218 X2318 X2418 X7169 X2424 X2519 X2619 X2625 
-	X7824 X7847 X7870 X7924 X7947 X7970 X7179 
-	X2723 X2740 X2823 X2840 X2923 X2940 X7183 
-	X805 X905 X1005 X1044 X1215 X1219 X1715 X1815 X2006 X2016 
-	X42001 X6809 X4106 X4706 X6810
-	;
-# delimit cr
+{
+quietly infix                   ///
+int     year         1-4      ///
+  long    serial       5-9      ///
+  byte    month        10-11    ///
+  double  cpsid        12-25    ///
+  byte    asecflag     26-26    ///
+  byte    hflag        27-27    ///
+  double  asecwth      28-37    ///
+  byte    statefip     38-39    ///
+  long    county       40-44    ///
+  byte    statecensus  45-46    ///
+  byte    ownershp     47-48    ///
+  double  hhincome     49-56    ///
+  byte    ncouples     57-57    ///
+  byte    pernum       58-59    ///
+  double  cpsidp       60-73    ///
+  double  asecwt       74-83    ///
+  int     relate       84-87    ///
+  byte    age          88-89    ///
+  byte    sex          90-90    ///
+  int     race         91-93    ///
+  byte    sprule       94-95    ///
+  byte    famunit      96-97    ///
+  byte    ftype        98-98    ///
+  long    bpl          99-103   ///
+  byte    citizen      104-104  ///
+  byte    empstat      105-106  ///
+  byte    labforce     107-107  ///
+  int     occ          108-111  ///
+  int     ind          112-115  ///
+  byte    classwkr     116-117  ///
+  int     uhrsworkt    118-120  ///
+  byte    whyunemp     121-121  ///
+  byte    whyabsnt     122-123  ///
+  int     whyptlwk     124-126  ///
+  byte    wkstat       127-128  ///
+  int     educ         129-131  ///
+  double  earnwt       132-141  ///
+  int     uhrsworkly   142-144  ///
+  byte    pension      145-145  ///
+  byte    firmsize     146-146  ///
+  double  ftotval      147-156  ///
+  double  inctot       157-164  ///
+  long    incwage      165-171  ///
+  long    incss        172-176  ///
+  long    incwelfr     177-181  ///
+  long    incssi       182-186  ///
+  long    incdisab     187-192  ///
+  byte    srcdisa2     193-194  ///
+  byte    srcreti1     195-195  ///
+  byte    srcreti2     196-196  ///
+  byte    whyss1       197-197  ///
+  byte    whyss2       198-198  ///
+  byte    offpov       199-200  ///
+  byte    offpovuniv   201-202  ///
+  byte    disabwrk     203-203  ///
+  byte    health       204-204  ///
+  byte    quitsick     205-205  ///
+  byte    inclugh      206-206  ///
+  byte    paidgh       207-208  ///
+  int     emcontrb     209-212  ///
+  byte    himcaid      213-213  ///
+  byte    gotwic       214-214  ///
+  double  hourwage     215-218  ///
+  byte    union        219-219  ///
+  using `"cps_001.dat"'
 
-///ASSET AND LIABILITY CLASSIFICATION
-// CERTIFICATES OF DEPOSIT
-rename X3721 CDs
-label variable CDs "Certificates of deposit"
+replace asecwth     = asecwth     / 10000
+replace asecwt      = asecwt      / 10000
+replace earnwt      = earnwt      / 10000
+replace hourwage    = hourwage    / 100
 
-// CHECKING ACCOUNTS
-replace X3506 = 0 if X3506 == -1
-replace X3510 = 0 if X3510 == -1
-replace X3514 = 0 if X3514 == -1
-replace X3518 = 0 if X3518 == -1
-replace X3522 = 0 if X3522 == -1
-replace X3526 = 0 if X3526 == -1
-replace X3529 = 0 if X3529 == -1
-gen Checking = X3506 + X3510 + X3514 + X3518 + X3522 + X3526 + X3529
-label variable Checking "Total amount in checking accounts"
-drop X3506 X3510 X3514 X3518 X3522 X3526 X3529
+format cpsid       %14.0g
+format asecwth     %10.4f
+format hhincome    %8.0g
+format cpsidp      %14.0g
+format asecwt      %10.4f
+format earnwt      %10.4f
+format ftotval     %10.0g
+format inctot      %8.0g
+format hourwage    %4.2f
 
-// SAVINGS ACCOUNTS
-replace X3730 = 0 if X3730 == -1
-replace X3736 = 0 if X3736 == -1
-replace X3742 = 0 if X3742 == -1
-replace X3748 = 0 if X3748 == -1
-replace X3754 = 0 if X3754 == -1
-replace X3760 = 0 if X3760 == -1
-replace X3765 = 0 if X3765 == -1
-gen Savings = X3730 + X3736 + X3742 + X3748 + X3754 + X3760 + X3765
-label variable Savings "Total amount in savings accounts"
-drop X3730 X3736 X3742 X3748 X3754 X3765
+label var year        `"Survey year"'
+label var serial      `"Household serial number"'
+label var month       `"Month"'
+label var cpsid       `"CPSID, household record"'
+label var asecflag    `"Flag for ASEC"'
+label var hflag       `"Flag for the 3/8 file 2014"'
+label var asecwth     `"Annual Social and Economic Supplement Household weight"'
+label var statefip    `"State (FIPS code)"'
+label var county      `"FIPS county code"'
+label var statecensus `"State (Census code)"'
+label var ownershp    `"Ownership of dwelling"'
+label var hhincome    `"Total household income"'
+label var ncouples    `"Number of married couples in household"'
+label var pernum      `"Person number in sample unit"'
+label var cpsidp      `"CPSID, person record"'
+label var asecwt      `"Annual Social and Economic Supplement Weight"'
+label var relate      `"Relationship to household head"'
+label var age         `"Age"'
+label var sex         `"Sex"'
+label var race        `"Race"'
+label var sprule      `"Rule for linking spouse"'
+label var famunit     `"Family unit membership"'
+label var ftype       `"Family Type"'
+label var bpl         `"Birthplace"'
+label var citizen     `"Citizenship status"'
+label var empstat     `"Employment status"'
+label var labforce    `"Labor force status"'
+label var occ         `"Occupation"'
+label var ind         `"Industry"'
+label var classwkr    `"Class of worker"'
+label var uhrsworkt   `"Hours usually worked per week at all jobs"'
+label var whyunemp    `"Reason for unemployment"'
+label var whyabsnt    `"Reason for absence from work"'
+label var whyptlwk    `"Reason for working part time last week"'
+label var wkstat      `"Full or part time status"'
+label var educ        `"Educational attainment recode"'
+label var earnwt      `"Earnings weight"'
+label var uhrsworkly  `"Usual hours worked per week (last yr)"'
+label var pension     `"Pension plan at work"'
+label var firmsize    `"Number of employees"'
+label var ftotval     `"Total family income"'
+label var inctot      `"Total personal income"'
+label var incwage     `"Wage and salary income"'
+label var incss       `"Social Security income"'
+label var incwelfr    `"Welfare (public assistance) income"'
+label var incssi      `"Income from SSI"'
+label var incdisab    `"Income from disability benefits"'
+label var srcdisa2    `"Second source of disability income"'
+label var srcreti1    `"First source of retirement income"'
+label var srcreti2    `"Second source of retirement income"'
+label var whyss1      `"First reason for receiving social security income"'
+label var whyss2      `"Second reason for receiving social security income"'
+label var offpov      `"Official Poverty Status (IPUMS constructed)"'
+label var offpovuniv  `"Official Poverty Rate Universe"'
+label var disabwrk    `"Work disability"'
+label var health      `"Health status"'
+label var quitsick    `"Quit job or retired for health reasons"'
+label var inclugh     `"Included in employer group health plan  last year"'
+label var paidgh      `"Employer paid for group health plan"'
+label var emcontrb    `"Employer contribution for health insurance"'
+label var himcaid     `"Covered by Medicaid last year"'
+label var gotwic      `"Received WIC"'
+label var hourwage    `"Hourly wage"'
+label var union       `"Union membership"'
 
-// MUTUAL FUNDS
-gen MutualFund = X3822 + X3824 + X3826 + X3828 + X3830 + X7787 + X6704
-label variable MutualFund "Total value of mutual funds"
-drop X3822 X3824 X3826 X3828 X3830 X7787 X6704
+label define month_lbl 01 `"January"'
+label define month_lbl 02 `"February"', add
+label define month_lbl 03 `"March"', add
+label define month_lbl 04 `"April"', add
+label define month_lbl 05 `"May"', add
+label define month_lbl 06 `"June"', add
+label define month_lbl 07 `"July"', add
+label define month_lbl 08 `"August"', add
+label define month_lbl 09 `"September"', add
+label define month_lbl 10 `"October"', add
+label define month_lbl 11 `"November"', add
+label define month_lbl 12 `"December"', add
+label values month month_lbl
 
-// BONDS 
-gen Bonds = X3902 + X7635 + X7636 + X7637 + X7638 + X7639 + X6706
-label variable Bonds "Total value of bonds (at market value if available)"
-drop X3902 X7635 X7636 X7637 X7638 X7639 X6706
+label define asecflag_lbl 1 `"ASEC"'
+label define asecflag_lbl 2 `"March Basic"', add
+label values asecflag asecflag_lbl
 
-// STOCKS
-replace X3930 = 0 if X3930 == -1
-replace X3932 = 0 if X3932 == -1
-gen Stocks = X3915 + X3930 - X3932
-label variable Stocks "Total value of stocks and cash or call money accounts minus margin loans"
-drop X3915 X3930 X3932 
+label define hflag_lbl 0 `"5/8 file"'
+label define hflag_lbl 1 `"3/8 file"', add
+label values hflag hflag_lbl
 
-// ANNUITIES, TRUSTS AND MANAGED INVESTMENT ACCOUNTS
-gen ATMIA = X6577 + X6587
-label variable ATMIA "Annuities, trusts and managed investment accounts"
-drop X6577 X6587
+label define statefip_lbl 01 `"Alabama"'
+label define statefip_lbl 02 `"Alaska"', add
+label define statefip_lbl 04 `"Arizona"', add
+label define statefip_lbl 05 `"Arkansas"', add
+label define statefip_lbl 06 `"California"', add
+label define statefip_lbl 08 `"Colorado"', add
+label define statefip_lbl 09 `"Connecticut"', add
+label define statefip_lbl 10 `"Delaware"', add
+label define statefip_lbl 11 `"District of Columbia"', add
+label define statefip_lbl 12 `"Florida"', add
+label define statefip_lbl 13 `"Georgia"', add
+label define statefip_lbl 15 `"Hawaii"', add
+label define statefip_lbl 16 `"Idaho"', add
+label define statefip_lbl 17 `"Illinois"', add
+label define statefip_lbl 18 `"Indiana"', add
+label define statefip_lbl 19 `"Iowa"', add
+label define statefip_lbl 20 `"Kansas"', add
+label define statefip_lbl 21 `"Kentucky"', add
+label define statefip_lbl 22 `"Louisiana"', add
+label define statefip_lbl 23 `"Maine"', add
+label define statefip_lbl 24 `"Maryland"', add
+label define statefip_lbl 25 `"Massachusetts"', add
+label define statefip_lbl 26 `"Michigan"', add
+label define statefip_lbl 27 `"Minnesota"', add
+label define statefip_lbl 28 `"Mississippi"', add
+label define statefip_lbl 29 `"Missouri"', add
+label define statefip_lbl 30 `"Montana"', add
+label define statefip_lbl 31 `"Nebraska"', add
+label define statefip_lbl 32 `"Nevada"', add
+label define statefip_lbl 33 `"New Hampshire"', add
+label define statefip_lbl 34 `"New Jersey"', add
+label define statefip_lbl 35 `"New Mexico"', add
+label define statefip_lbl 36 `"New York"', add
+label define statefip_lbl 37 `"North Carolina"', add
+label define statefip_lbl 38 `"North Dakota"', add
+label define statefip_lbl 39 `"Ohio"', add
+label define statefip_lbl 40 `"Oklahoma"', add
+label define statefip_lbl 41 `"Oregon"', add
+label define statefip_lbl 42 `"Pennsylvania"', add
+label define statefip_lbl 44 `"Rhode Island"', add
+label define statefip_lbl 45 `"South Carolina"', add
+label define statefip_lbl 46 `"South Dakota"', add
+label define statefip_lbl 47 `"Tennessee"', add
+label define statefip_lbl 48 `"Texas"', add
+label define statefip_lbl 49 `"Utah"', add
+label define statefip_lbl 50 `"Vermont"', add
+label define statefip_lbl 51 `"Virginia"', add
+label define statefip_lbl 53 `"Washington"', add
+label define statefip_lbl 54 `"West Virginia"', add
+label define statefip_lbl 55 `"Wisconsin"', add
+label define statefip_lbl 56 `"Wyoming"', add
+label define statefip_lbl 61 `"Maine-New Hampshire-Vermont"', add
+label define statefip_lbl 65 `"Montana-Idaho-Wyoming"', add
+label define statefip_lbl 68 `"Alaska-Hawaii"', add
+label define statefip_lbl 69 `"Nebraska-North Dakota-South Dakota"', add
+label define statefip_lbl 70 `"Maine-Massachusetts-New Hampshire-Rhode Island-Vermont"', add
+label define statefip_lbl 71 `"Michigan-Wisconsin"', add
+label define statefip_lbl 72 `"Minnesota-Iowa"', add
+label define statefip_lbl 73 `"Nebraska-North Dakota-South Dakota-Kansas"', add
+label define statefip_lbl 74 `"Delaware-Virginia"', add
+label define statefip_lbl 75 `"North Carolina-South Carolina"', add
+label define statefip_lbl 76 `"Alabama-Mississippi"', add
+label define statefip_lbl 77 `"Arkansas-Oklahoma"', add
+label define statefip_lbl 78 `"Arizona-New Mexico-Colorado"', add
+label define statefip_lbl 79 `"Idaho-Wyoming-Utah-Montana-Nevada"', add
+label define statefip_lbl 80 `"Alaska-Washington-Hawaii"', add
+label define statefip_lbl 81 `"New Hampshire-Maine-Vermont-Rhode Island"', add
+label define statefip_lbl 83 `"South Carolina-Georgia"', add
+label define statefip_lbl 84 `"Kentucky-Tennessee"', add
+label define statefip_lbl 85 `"Arkansas-Louisiana-Oklahoma"', add
+label define statefip_lbl 87 `"Iowa-N Dakota-S Dakota-Nebraska-Kansas-Minnesota-Missouri"', add
+label define statefip_lbl 88 `"Washington-Oregon-Alaska-Hawaii"', add
+label define statefip_lbl 89 `"Montana-Wyoming-Colorado-New Mexico-Utah-Nevada-Arizona"', add
+label define statefip_lbl 90 `"Delaware-Maryland-Virginia-West Virginia"', add
+label define statefip_lbl 99 `"State not identified"', add
+label values statefip statefip_lbl
 
-// MOBILE PLUS SITE, HOME, INVESTMENT REAL ESTATE, AND VACATION PROPERTIES
-/* X604 + X614 + X623 sum of mobile plus site, X716 home, X1706, and X1806 
-report total value of timeshare/property; X1705, and X1805 report share of
-property owned by R; X2002 reports value of total share of vacation home or 
-recreational property;  */
-replace X2012 = 0 if X2012 == -1
-gen Investprop = X604 + X614 + X623 + X716 + X1705*X1706/10000 + X1805*X1806/10000 ///
-				 + X2002 + X2012
-label variable Investprop "Value of mobile plus site, home, investment property and vacation homes"
-drop X604 X614 X623 X716 X1705 X1706 X1805 X1806 X2002 X2012
+label define statecensus_lbl 00 `"Unknown"'
+label define statecensus_lbl 11 `"Maine"', add
+label define statecensus_lbl 12 `"New Hampshire"', add
+label define statecensus_lbl 13 `"Vermont"', add
+label define statecensus_lbl 14 `"Massachusetts"', add
+label define statecensus_lbl 15 `"Rhode Island"', add
+label define statecensus_lbl 16 `"Connecticut"', add
+label define statecensus_lbl 19 `"Maine, New Hampshire, Vermont, Rhode Island"', add
+label define statecensus_lbl 21 `"New York"', add
+label define statecensus_lbl 22 `"New Jersey"', add
+label define statecensus_lbl 23 `"Pennsylvania"', add
+label define statecensus_lbl 31 `"Ohio"', add
+label define statecensus_lbl 32 `"Indiana"', add
+label define statecensus_lbl 33 `"Illinois"', add
+label define statecensus_lbl 34 `"Michigan"', add
+label define statecensus_lbl 35 `"Wisconsin"', add
+label define statecensus_lbl 39 `"Michigan, Wisconsin"', add
+label define statecensus_lbl 41 `"Minnesota"', add
+label define statecensus_lbl 42 `"Iowa"', add
+label define statecensus_lbl 43 `"Missouri"', add
+label define statecensus_lbl 44 `"North Dakota"', add
+label define statecensus_lbl 45 `"South Dakota"', add
+label define statecensus_lbl 46 `"Nebraska"', add
+label define statecensus_lbl 47 `"Kansas"', add
+label define statecensus_lbl 49 `"Minnesota, Iowa, Missouri, North Dakota, South Dakota, Nebraska, Kansas"', add
+label define statecensus_lbl 50 `"Delaware, Maryland, Virginia, West Virginia"', add
+label define statecensus_lbl 51 `"Delaware"', add
+label define statecensus_lbl 52 `"Maryland"', add
+label define statecensus_lbl 53 `"District of Columbia"', add
+label define statecensus_lbl 54 `"Virginia"', add
+label define statecensus_lbl 55 `"West Virginia"', add
+label define statecensus_lbl 56 `"North Carolina"', add
+label define statecensus_lbl 57 `"South Carolina"', add
+label define statecensus_lbl 58 `"Georgia"', add
+label define statecensus_lbl 59 `"Florida"', add
+label define statecensus_lbl 60 `"South Carolina, Georgia"', add
+label define statecensus_lbl 61 `"Kentucky"', add
+label define statecensus_lbl 62 `"Tennessee"', add
+label define statecensus_lbl 63 `"Alabama"', add
+label define statecensus_lbl 64 `"Mississippi"', add
+label define statecensus_lbl 67 `"Kentucky, Tennessee"', add
+label define statecensus_lbl 69 `"Alabama, Mississippi"', add
+label define statecensus_lbl 71 `"Arkansas"', add
+label define statecensus_lbl 72 `"Louisiana"', add
+label define statecensus_lbl 73 `"Oklahoma"', add
+label define statecensus_lbl 74 `"Texas"', add
+label define statecensus_lbl 79 `"Arkansas, Louisiana, Oklahoma"', add
+label define statecensus_lbl 81 `"Montana"', add
+label define statecensus_lbl 82 `"Idaho"', add
+label define statecensus_lbl 83 `"Wyoming"', add
+label define statecensus_lbl 84 `"Colorado"', add
+label define statecensus_lbl 85 `"New Mexico"', add
+label define statecensus_lbl 86 `"Arizona"', add
+label define statecensus_lbl 87 `"Utah"', add
+label define statecensus_lbl 88 `"Nevada"', add
+label define statecensus_lbl 89 `"Montana, Idaho, Wyoming, Colorado, New Mexico, Arizona, Utah, Nevada"', add
+label define statecensus_lbl 91 `"Washington"', add
+label define statecensus_lbl 92 `"Oregon"', add
+label define statecensus_lbl 93 `"California"', add
+label define statecensus_lbl 94 `"Alaska"', add
+label define statecensus_lbl 95 `"Hawaii"', add
+label define statecensus_lbl 99 `"Washington, Oregon, Alaska, Hawaii"', add
+label values statecensus statecensus_lbl
 
-//FARM MANAGED AS BUSINESS; NET WORTH OF ACTIVELY MANAGED BUSINESS;
-//VALUE OF NON-ACTIVELY MANAGED BUSINESS; NET MONEY OWED FROM BUSINESS
-*FARMLAND WITH BUSINESS
-/* X513 is owned farmland and top coded at 99,999,999 (not binding). X526 is 
-the value of the share of partly owned farmland and topcoded at 99,999,999 (not 
-binding)
-*/
-gen Farm = X513 + X526
-label variable Farm "Value of fully or partially owned farm"
-drop X513 X526
+label define ownershp_lbl 00 `"NIU"'
+label define ownershp_lbl 10 `"Owned or being bought"', add
+label define ownershp_lbl 21 `"No cash rent"', add
+label define ownershp_lbl 22 `"With cash rent"', add
+label values ownershp ownershp_lbl
 
-*VALUE OF BUSINESS (recode nothing to 0)
-replace X3129 = 0 if X3129 == -1
-replace X3229 = 0 if X3229 == -1
-replace X3335 = 0 if X3335 == -1
-gen ActBusiness = X3129 + X3229 + X3335
-label variable ActBusiness "Value of actively managed business"
-drop X3129 X3229 X3335
+label define ncouples_lbl 0 `"0 couples or NIU"'
+label define ncouples_lbl 1 `"1"', add
+label define ncouples_lbl 2 `"2"', add
+label define ncouples_lbl 3 `"3"', add
+label define ncouples_lbl 4 `"4"', add
+label define ncouples_lbl 5 `"5"', add
+label define ncouples_lbl 6 `"6"', add
+label define ncouples_lbl 7 `"7"', add
+label define ncouples_lbl 9 `"9"', add
+label values ncouples ncouples_lbl
 
-*NON-ACTIVELY MANAGED BUSINESSES
-*What could you sell your shares for
-replace X3428 = 0 if X3428 == -1
-gen NABusiness = X3408 + X3412 + X3452 + X3416 + X3420 + X3428
-label variable NABusiness "What could you sell your share of all non-actively managed businesses for?"
-drop X3408 X3412 X3452 X3416 X3420 X3428
+label define relate_lbl 0101 `"Head/householder"'
+label define relate_lbl 0201 `"Spouse"', add
+label define relate_lbl 0301 `"Child"', add
+label define relate_lbl 0303 `"Stepchild"', add
+label define relate_lbl 0501 `"Parent"', add
+label define relate_lbl 0701 `"Sibling"', add
+label define relate_lbl 0901 `"Grandchild"', add
+label define relate_lbl 1001 `"Other relatives, n.s."', add
+label define relate_lbl 1113 `"Partner/roommate"', add
+label define relate_lbl 1114 `"Unmarried partner"', add
+label define relate_lbl 1115 `"Housemate/roomate"', add
+label define relate_lbl 1241 `"Roomer/boarder/lodger"', add
+label define relate_lbl 1242 `"Foster children"', add
+label define relate_lbl 1260 `"Other nonrelatives"', add
+label define relate_lbl 9100 `"Armed Forces, relationship unknown"', add
+label define relate_lbl 9200 `"Age under 14, relationship unknown"', add
+label define relate_lbl 9900 `"Relationship unknown"', add
+label define relate_lbl 9999 `"NIU"', add
+label values relate relate_lbl
 
-*ACTIVELY MANAGED BUSINESSES
-*Amount the business owes R
-gen owedfrombus = X3124 + X3224
-label variable owedfrombus "Amount the business owes R"
-drop X3124 X3224
+label define age_lbl 00 `"Under 1 year"'
+label define age_lbl 01 `"1"', add
+label define age_lbl 02 `"2"', add
+label define age_lbl 03 `"3"', add
+label define age_lbl 04 `"4"', add
+label define age_lbl 05 `"5"', add
+label define age_lbl 06 `"6"', add
+label define age_lbl 07 `"7"', add
+label define age_lbl 08 `"8"', add
+label define age_lbl 09 `"9"', add
+label define age_lbl 10 `"10"', add
+label define age_lbl 11 `"11"', add
+label define age_lbl 12 `"12"', add
+label define age_lbl 13 `"13"', add
+label define age_lbl 14 `"14"', add
+label define age_lbl 15 `"15"', add
+label define age_lbl 16 `"16"', add
+label define age_lbl 17 `"17"', add
+label define age_lbl 18 `"18"', add
+label define age_lbl 19 `"19"', add
+label define age_lbl 20 `"20"', add
+label define age_lbl 21 `"21"', add
+label define age_lbl 22 `"22"', add
+label define age_lbl 23 `"23"', add
+label define age_lbl 24 `"24"', add
+label define age_lbl 25 `"25"', add
+label define age_lbl 26 `"26"', add
+label define age_lbl 27 `"27"', add
+label define age_lbl 28 `"28"', add
+label define age_lbl 29 `"29"', add
+label define age_lbl 30 `"30"', add
+label define age_lbl 31 `"31"', add
+label define age_lbl 32 `"32"', add
+label define age_lbl 33 `"33"', add
+label define age_lbl 34 `"34"', add
+label define age_lbl 35 `"35"', add
+label define age_lbl 36 `"36"', add
+label define age_lbl 37 `"37"', add
+label define age_lbl 38 `"38"', add
+label define age_lbl 39 `"39"', add
+label define age_lbl 40 `"40"', add
+label define age_lbl 41 `"41"', add
+label define age_lbl 42 `"42"', add
+label define age_lbl 43 `"43"', add
+label define age_lbl 44 `"44"', add
+label define age_lbl 45 `"45"', add
+label define age_lbl 46 `"46"', add
+label define age_lbl 47 `"47"', add
+label define age_lbl 48 `"48"', add
+label define age_lbl 49 `"49"', add
+label define age_lbl 50 `"50"', add
+label define age_lbl 51 `"51"', add
+label define age_lbl 52 `"52"', add
+label define age_lbl 53 `"53"', add
+label define age_lbl 54 `"54"', add
+label define age_lbl 55 `"55"', add
+label define age_lbl 56 `"56"', add
+label define age_lbl 57 `"57"', add
+label define age_lbl 58 `"58"', add
+label define age_lbl 59 `"59"', add
+label define age_lbl 60 `"60"', add
+label define age_lbl 61 `"61"', add
+label define age_lbl 62 `"62"', add
+label define age_lbl 63 `"63"', add
+label define age_lbl 64 `"64"', add
+label define age_lbl 65 `"65"', add
+label define age_lbl 66 `"66"', add
+label define age_lbl 67 `"67"', add
+label define age_lbl 68 `"68"', add
+label define age_lbl 69 `"69"', add
+label define age_lbl 70 `"70"', add
+label define age_lbl 71 `"71"', add
+label define age_lbl 72 `"72"', add
+label define age_lbl 73 `"73"', add
+label define age_lbl 74 `"74"', add
+label define age_lbl 75 `"75"', add
+label define age_lbl 76 `"76"', add
+label define age_lbl 77 `"77"', add
+label define age_lbl 78 `"78"', add
+label define age_lbl 79 `"79"', add
+label define age_lbl 80 `"80"', add
+label define age_lbl 81 `"81"', add
+label define age_lbl 82 `"82"', add
+label define age_lbl 83 `"83"', add
+label define age_lbl 84 `"84"', add
+label define age_lbl 85 `"85"', add
+label define age_lbl 86 `"86"', add
+label define age_lbl 87 `"87"', add
+label define age_lbl 88 `"88"', add
+label define age_lbl 89 `"89"', add
+label define age_lbl 90 `"90 (90+, 1988-2002)"', add
+label define age_lbl 91 `"91"', add
+label define age_lbl 92 `"92"', add
+label define age_lbl 93 `"93"', add
+label define age_lbl 94 `"94"', add
+label define age_lbl 95 `"95"', add
+label define age_lbl 96 `"96"', add
+label define age_lbl 97 `"97"', add
+label define age_lbl 98 `"98"', add
+label define age_lbl 99 `"99+"', add
+label values age age_lbl
 
-*Amount owed to business; if recorded earlier, set to zero
-replace X3126 = 0 if X3127 == 1
-replace X3226 = 0 if X3227 == 1
-gen owetobus = X3126 + X3226
-label variable owetobus "Amount R owes business"
-drop X3126 X3226 X3127 X3227
+label define sex_lbl 1 `"Male"'
+label define sex_lbl 2 `"Female"', add
+label define sex_lbl 9 `"NIU"', add
+label values sex sex_lbl
 
-*Net amount owed to business
-gen netowedfrombus = owedfrombus - owetobus
-label variable netowedfrombus "Net amount business owes R" 
+label define race_lbl 100 `"White"'
+label define race_lbl 200 `"Black/Negro"', add
+label define race_lbl 300 `"American Indian/Aleut/Eskimo"', add
+label define race_lbl 650 `"Asian or Pacific Islander"', add
+label define race_lbl 651 `"Asian only"', add
+label define race_lbl 652 `"Hawaiian/Pacific Islander only"', add
+label define race_lbl 700 `"Other (single) race, n.e.c."', add
+label define race_lbl 801 `"White-Black"', add
+label define race_lbl 802 `"White-American Indian"', add
+label define race_lbl 803 `"White-Asian"', add
+label define race_lbl 804 `"White-Hawaiian/Pacific Islander"', add
+label define race_lbl 805 `"Black-American Indian"', add
+label define race_lbl 806 `"Black-Asian"', add
+label define race_lbl 807 `"Black-Hawaiian/Pacific Islander"', add
+label define race_lbl 808 `"American Indian-Asian"', add
+label define race_lbl 809 `"Asian-Hawaiian/Pacific Islander"', add
+label define race_lbl 810 `"White-Black-American Indian"', add
+label define race_lbl 811 `"White-Black-Asian"', add
+label define race_lbl 812 `"White-American Indian-Asian"', add
+label define race_lbl 813 `"White-Asian-Hawaiian/Pacific Islander"', add
+label define race_lbl 814 `"White-Black-American Indian-Asian"', add
+label define race_lbl 815 `"American Indian-Hawaiian/Pacific Islander"', add
+label define race_lbl 816 `"White-Black--Hawaiian/Pacific Islander"', add
+label define race_lbl 817 `"White-American Indian-Hawaiian/Pacific Islander"', add
+label define race_lbl 818 `"Black-American Indian-Asian"', add
+label define race_lbl 819 `"White-American Indian-Asian-Hawaiian/Pacific Islander"', add
+label define race_lbl 820 `"Two or three races, unspecified"', add
+label define race_lbl 830 `"Four or five races, unspecified"', add
+label define race_lbl 999 `"Blank"', add
+label values race race_lbl
 
-// Money owed to R from outstanding loans to others
-gen Loanowed = X1306 + X1325 + X1339 - X1318 - X1337 - X1341
-label variable Loanowed "Loanowed"
-drop X1306 X1325 X1339 X1318 X1337 X1341
+label define sprule_lbl 00 `"No spouse link"'
+label define sprule_lbl 11 `"Rule 11 is used to identify spouse/partner"', add
+label define sprule_lbl 12 `"Rule 12 is used to identify spouse/partner"', add
+label define sprule_lbl 13 `"Rule 13 is used to identify spouse/partner"', add
+label define sprule_lbl 14 `"Rule 14 is used to identify spouse/partner"', add
+label define sprule_lbl 15 `"Rule 15 is used to identify spouse/partner"', add
+label define sprule_lbl 16 `"Rule 16 is used to identify spouse/partner"', add
+label define sprule_lbl 21 `"Rule 21 is used to identify spouse/partner"', add
+label define sprule_lbl 22 `"Rule 22 is used to identify spouse/partner"', add
+label define sprule_lbl 23 `"Rule 23 is used to identify spouse/partner"', add
+label define sprule_lbl 24 `"Rule 24 is used to identify spouse/partner"', add
+label define sprule_lbl 25 `"Rule 25 is used to identify spouse/partner"', add
+label define sprule_lbl 26 `"Rule 26 is used to identify spouse/partner"', add
+label define sprule_lbl 31 `"Rule 31 is used to identify spouse/partner"', add
+label define sprule_lbl 32 `"Rule 32 is used to identify spouse/partner"', add
+label define sprule_lbl 33 `"Rule 33 is used to identify spouse/partner"', add
+label define sprule_lbl 34 `"Rule 34 is used to identify spouse/partner"', add
+label define sprule_lbl 35 `"Rule 35 is used to identify spouse/partner"', add
+label define sprule_lbl 36 `"Rule 36 is used to identify spouse/partner"', add
+label define sprule_lbl 41 `"Rule 41 is used to identify spouse/partner"', add
+label define sprule_lbl 42 `"Rule 42 is used to identify spouse/partner"', add
+label define sprule_lbl 43 `"Rule 43 is used to identify spouse/partner"', add
+label define sprule_lbl 44 `"Rule 44 is used to identify spouse/partner"', add
+label define sprule_lbl 45 `"Rule 45 is used to identify spouse/partner"', add
+label define sprule_lbl 46 `"Rule 46 is used to identify spouse/partner"', add
+label values sprule sprule_lbl
 
-// VEHICLES
-gen Vehicles = X8166 + X8167 + X8168 + X8188 + X2422 + X2506 + X2606 + X2623
-label variable Vehicles "Prevailing retail value of vehicles (incl motor homes, RVs, boats, airplanes, etc.)"
-drop X8166 X8167 X8168 X8188 X2422 X2506 X2606 X2623
+label define famunit_lbl 01 `"1st family in household or group quarters"'
+label define famunit_lbl 02 `"2nd family in household or group quarters"', add
+label define famunit_lbl 03 `"3rd"', add
+label define famunit_lbl 04 `"4th"', add
+label define famunit_lbl 05 `"5th"', add
+label define famunit_lbl 06 `"6th"', add
+label define famunit_lbl 07 `"7th"', add
+label define famunit_lbl 08 `"8th"', add
+label define famunit_lbl 09 `"9th"', add
+label define famunit_lbl 10 `"10"', add
+label define famunit_lbl 11 `"11"', add
+label define famunit_lbl 12 `"12"', add
+label define famunit_lbl 13 `"13"', add
+label define famunit_lbl 14 `"14"', add
+label define famunit_lbl 15 `"15"', add
+label define famunit_lbl 16 `"16"', add
+label define famunit_lbl 17 `"17"', add
+label define famunit_lbl 18 `"18"', add
+label define famunit_lbl 19 `"19"', add
+label define famunit_lbl 20 `"20"', add
+label define famunit_lbl 21 `"21"', add
+label define famunit_lbl 22 `"22"', add
+label define famunit_lbl 23 `"23"', add
+label define famunit_lbl 24 `"24"', add
+label define famunit_lbl 25 `"25"', add
+label define famunit_lbl 26 `"26"', add
+label define famunit_lbl 27 `"27"', add
+label define famunit_lbl 28 `"28"', add
+label define famunit_lbl 29 `"29"', add
+label values famunit famunit_lbl
 
-// RETIREMENT SAVINGS
-gen IRA = X6551 + X6559 + X6567 + X6552 + X6560 + X6568 + X6553 + X6561 + X6569 ///
-		  + X6554 + X6562 + X6570 + X6756 + X6757 + X6758
-label variable IRA "IRA, Roth IRA, roll-over IRA and Keogh accounts"
-drop X6551 X6559 X6567 X6552 X6560 X6568 X6553 X6561 X6569 X6554 X6562 X6570 ///
-	 X6756 X6757 X6758
+label define ftype_lbl 1 `"Primary family"'
+label define ftype_lbl 2 `"Nonfamily householder"', add
+label define ftype_lbl 3 `"Related subfamily"', add
+label define ftype_lbl 4 `"Unrelated subfamily"', add
+label define ftype_lbl 5 `"Secondary individual"', add
+label define ftype_lbl 9 `"Missing"', add
+label values ftype ftype_lbl
 
-// LIFEINSURANCE
-*If life-insurance is net and loans are reported earlier, add them back
-replace X4006 = X4006 + X4010 if X4008 == 1
-*Subtract loans on life-insurance if not reported earlier
-replace X4006 = X4006 - X4010 if X4009 == 5
-rename X4006 LifeInsurance
-label variable LifeInsurance "Current 'cash value' of life-insurance"
-drop X4008 X4009 X4010
+label define bpl_lbl 09900 `"United States, n.s."'
+label define bpl_lbl 10000 `"American Samoa"', add
+label define bpl_lbl 10500 `"Guam"', add
+label define bpl_lbl 10750 `"Northern Mariana Islands"', add
+label define bpl_lbl 11000 `"Puerto Rico"', add
+label define bpl_lbl 11500 `"U.S. Virgin Islands"', add
+label define bpl_lbl 12090 `"U.S. outlying areas, n.s."', add
+label define bpl_lbl 15000 `"Canada"', add
+label define bpl_lbl 16010 `"Bermuda"', add
+label define bpl_lbl 19900 `"North America, n.s."', add
+label define bpl_lbl 20000 `"Mexico"', add
+label define bpl_lbl 21010 `"Belize/British Honduras"', add
+label define bpl_lbl 21020 `"Costa Rica"', add
+label define bpl_lbl 21030 `"El Salvador"', add
+label define bpl_lbl 21040 `"Guatemala"', add
+label define bpl_lbl 21050 `"Honduras"', add
+label define bpl_lbl 21060 `"Nicaragua"', add
+label define bpl_lbl 21070 `"Panama"', add
+label define bpl_lbl 21090 `"Central America, n.s."', add
+label define bpl_lbl 25000 `"Cuba"', add
+label define bpl_lbl 26010 `"Dominican Republic"', add
+label define bpl_lbl 26020 `"Haiti"', add
+label define bpl_lbl 26030 `"Jamaica"', add
+label define bpl_lbl 26043 `"Bahamas"', add
+label define bpl_lbl 26044 `"Barbados"', add
+label define bpl_lbl 26054 `"Dominica"', add
+label define bpl_lbl 26055 `"Grenada"', add
+label define bpl_lbl 26060 `"Trinidad and Tobago"', add
+label define bpl_lbl 26065 `"Antigua and Barbuda"', add
+label define bpl_lbl 26070 `"St. Kitts--Nevis"', add
+label define bpl_lbl 26075 `"St. Lucia"', add
+label define bpl_lbl 26080 `"St. Vincent and the Grenadi"', add
+label define bpl_lbl 26091 `"Caribbean, n.s."', add
+label define bpl_lbl 30005 `"Argentina"', add
+label define bpl_lbl 30010 `"Bolivia"', add
+label define bpl_lbl 30015 `"Brazil"', add
+label define bpl_lbl 30020 `"Chile"', add
+label define bpl_lbl 30025 `"Colombia"', add
+label define bpl_lbl 30030 `"Ecuador"', add
+label define bpl_lbl 30040 `"Guyana/British Guiana"', add
+label define bpl_lbl 30050 `"Peru"', add
+label define bpl_lbl 30060 `"Uruguay"', add
+label define bpl_lbl 30065 `"Venezuela"', add
+label define bpl_lbl 30070 `"Paraguay"', add
+label define bpl_lbl 30090 `"South America, n.s."', add
+label define bpl_lbl 31000 `"Americas, n.s."', add
+label define bpl_lbl 40000 `"Denmark"', add
+label define bpl_lbl 40100 `"Finland"', add
+label define bpl_lbl 40200 `"Iceland"', add
+label define bpl_lbl 40400 `"Norway"', add
+label define bpl_lbl 40500 `"Sweden"', add
+label define bpl_lbl 41000 `"England"', add
+label define bpl_lbl 41100 `"Scotland"', add
+label define bpl_lbl 41200 `"Wales"', add
+label define bpl_lbl 41300 `"United Kingdom, n.s."', add
+label define bpl_lbl 41400 `"Ireland"', add
+label define bpl_lbl 41410 `"Northern Ireland"', add
+label define bpl_lbl 42000 `"Belgium"', add
+label define bpl_lbl 42100 `"France"', add
+label define bpl_lbl 42500 `"Netherlands"', add
+label define bpl_lbl 42600 `"Switzerland"', add
+label define bpl_lbl 43300 `"Greece"', add
+label define bpl_lbl 43400 `"Italy"', add
+label define bpl_lbl 43600 `"Portugal"', add
+label define bpl_lbl 43610 `"Azores"', add
+label define bpl_lbl 43800 `"Spain"', add
+label define bpl_lbl 45000 `"Austria"', add
+label define bpl_lbl 45200 `"Czechoslavakia"', add
+label define bpl_lbl 45212 `"Slovakia"', add
+label define bpl_lbl 45213 `"Czech Republic"', add
+label define bpl_lbl 45300 `"Germany"', add
+label define bpl_lbl 45400 `"Hungary"', add
+label define bpl_lbl 45500 `"Poland"', add
+label define bpl_lbl 45600 `"Romania"', add
+label define bpl_lbl 45650 `"Bulgaria"', add
+label define bpl_lbl 45675 `"Albania"', add
+label define bpl_lbl 45700 `"Yugoslavia"', add
+label define bpl_lbl 45720 `"Bosnia and Herzegovina"', add
+label define bpl_lbl 45730 `"Croatia"', add
+label define bpl_lbl 45740 `"Macedonia"', add
+label define bpl_lbl 45750 `"Serbia"', add
+label define bpl_lbl 45760 `"Kosovo"', add
+label define bpl_lbl 45770 `"Montenego"', add
+label define bpl_lbl 46100 `"Estonia"', add
+label define bpl_lbl 46200 `"Latvia"', add
+label define bpl_lbl 46300 `"Lithuania"', add
+label define bpl_lbl 46500 `"Other USSR/Russia"', add
+label define bpl_lbl 46530 `"Ukraine"', add
+label define bpl_lbl 46535 `"Belarus"', add
+label define bpl_lbl 46540 `"Moldova"', add
+label define bpl_lbl 46590 `"USSR, n.s."', add
+label define bpl_lbl 49900 `"Europe, n.s."', add
+label define bpl_lbl 50000 `"China"', add
+label define bpl_lbl 50010 `"Hong Kong"', add
+label define bpl_lbl 50040 `"Taiwan"', add
+label define bpl_lbl 50100 `"Japan"', add
+label define bpl_lbl 50200 `"Korea"', add
+label define bpl_lbl 50220 `"South Korea"', add
+label define bpl_lbl 50300 `"Mongolia"', add
+label define bpl_lbl 51100 `"Cambodia"', add
+label define bpl_lbl 51200 `"Indonesia"', add
+label define bpl_lbl 51300 `"Laos"', add
+label define bpl_lbl 51400 `"Malaysia"', add
+label define bpl_lbl 51500 `"Philippines"', add
+label define bpl_lbl 51600 `"Singapore"', add
+label define bpl_lbl 51700 `"Thailand"', add
+label define bpl_lbl 51800 `"Vietnam"', add
+label define bpl_lbl 52000 `"Afghanistan"', add
+label define bpl_lbl 52100 `"India"', add
+label define bpl_lbl 52110 `"Bangladesh"', add
+label define bpl_lbl 52120 `"Bhutan"', add
+label define bpl_lbl 52130 `"Burma"', add
+label define bpl_lbl 52140 `"Pakistan"', add
+label define bpl_lbl 52150 `"Sri Lanka"', add
+label define bpl_lbl 52200 `"Nepal"', add
+label define bpl_lbl 55100 `"Armenia"', add
+label define bpl_lbl 55200 `"Azerbaijan"', add
+label define bpl_lbl 55300 `"Georgia"', add
+label define bpl_lbl 55400 `"Uzbekistan"', add
+label define bpl_lbl 55500 `"Kazakhstan"', add
+label define bpl_lbl 53000 `"Iran"', add
+label define bpl_lbl 53200 `"Iraq"', add
+label define bpl_lbl 53400 `"Israel"', add
+label define bpl_lbl 53420 `"Palestine"', add
+label define bpl_lbl 53500 `"Jordan"', add
+label define bpl_lbl 53700 `"Lebanon"', add
+label define bpl_lbl 54000 `"Saudi Arabia"', add
+label define bpl_lbl 54100 `"Syria"', add
+label define bpl_lbl 54200 `"Turkey"', add
+label define bpl_lbl 54300 `"Cyprus"', add
+label define bpl_lbl 54350 `"Kuwait"', add
+label define bpl_lbl 54400 `"Yemen"', add
+label define bpl_lbl 54500 `"United Arab Emirates"', add
+label define bpl_lbl 54700 `"Middle East, n.s."', add
+label define bpl_lbl 59900 `"Asia, n.e.c./n.s."', add
+label define bpl_lbl 60010 `"Northern Africa"', add
+label define bpl_lbl 60012 `"Egypt/United Arab Rep."', add
+label define bpl_lbl 60014 `"Morocco"', add
+label define bpl_lbl 60016 `"Algeria"', add
+label define bpl_lbl 60018 `"Sudan"', add
+label define bpl_lbl 60019 `"Libya"', add
+label define bpl_lbl 60023 `"Ghana"', add
+label define bpl_lbl 60031 `"Nigeria"', add
+label define bpl_lbl 60032 `"Cameroon"', add
+label define bpl_lbl 60033 `"Cape Verde"', add
+label define bpl_lbl 60034 `"Liberia"', add
+label define bpl_lbl 60035 `"Senegal"', add
+label define bpl_lbl 60036 `"Sierra Leone"', add
+label define bpl_lbl 60037 `"Guinea"', add
+label define bpl_lbl 60038 `"Ivory Coast"', add
+label define bpl_lbl 60039 `"Togo"', add
+label define bpl_lbl 60040 `"Eritrea"', add
+label define bpl_lbl 60044 `"Ethiopia"', add
+label define bpl_lbl 60045 `"Kenya"', add
+label define bpl_lbl 60050 `"Somalia"', add
+label define bpl_lbl 60060 `"Tanzania"', add
+label define bpl_lbl 60065 `"Uganda"', add
+label define bpl_lbl 60070 `"Zimbabwe"', add
+label define bpl_lbl 60094 `"South Africa (Union of)"', add
+label define bpl_lbl 60095 `"Zaire"', add
+label define bpl_lbl 60096 `"Congo"', add
+label define bpl_lbl 60097 `"Zambia"', add
+label define bpl_lbl 60099 `"Africa, n.s./n.e.c."', add
+label define bpl_lbl 70010 `"Australia"', add
+label define bpl_lbl 70020 `"New Zealand"', add
+label define bpl_lbl 71000 `"Pacific Islands"', add
+label define bpl_lbl 71021 `"Fiji"', add
+label define bpl_lbl 71022 `"Tonga"', add
+label define bpl_lbl 71023 `"Samoa"', add
+label define bpl_lbl 71024 `"Marshall Islands"', add
+label define bpl_lbl 72000 `"Micronesia"', add
+label define bpl_lbl 96000 `"Other, n.e.c. and unknown"', add
+label define bpl_lbl 99999 `"NIU"', add
+label values bpl bpl_lbl
 
-// MISCELLANEOUS ASSETS AND DEBTS
-gen MiscAssets = X4018 + X4022 + X4026 + X4030 - X4032
-label variable MiscAssets "Miscellaneous assets minus debts"
-drop X4018 X4022 X4026 X4030 X4032
-	 
-// PENSIONS FOR HEAD AND SPOUSE FROM CURRENT MAIN JOB
-*Gen gross amounts
-foreach var of varlist X11032 X11132 X11332 X11432 X11259 X11559 {
-replace `var'=0 if `var'==-1
+label define citizen_lbl 1 `"Born in U.S"'
+label define citizen_lbl 2 `"Born in U.S. outlying"', add
+label define citizen_lbl 3 `"Born abroad of American parents"', add
+label define citizen_lbl 4 `"Naturalized citizen"', add
+label define citizen_lbl 5 `"Not a citizen"', add
+label define citizen_lbl 9 `"NIU"', add
+label values citizen citizen_lbl
+
+label define empstat_lbl 00 `"NIU"'
+label define empstat_lbl 01 `"Armed Forces"', add
+label define empstat_lbl 10 `"At work"', add
+label define empstat_lbl 12 `"Has job, not at work last week"', add
+label define empstat_lbl 20 `"Unemployed"', add
+label define empstat_lbl 21 `"Unemployed, experienced worker"', add
+label define empstat_lbl 22 `"Unemployed, new worker"', add
+label define empstat_lbl 30 `"Not in labor force"', add
+label define empstat_lbl 31 `"NILF, housework"', add
+label define empstat_lbl 32 `"NILF, unable to work"', add
+label define empstat_lbl 33 `"NILF, school"', add
+label define empstat_lbl 34 `"NILF, other"', add
+label define empstat_lbl 35 `"NILF, unpaid, lt 15 hours"', add
+label define empstat_lbl 36 `"NILF, retired"', add
+label values empstat empstat_lbl
+
+label define labforce_lbl 0 `"NIU"'
+label define labforce_lbl 1 `"No, not in the labor force"', add
+label define labforce_lbl 2 `"Yes, in the labor force"', add
+label values labforce labforce_lbl
+
+label define classwkr_lbl 00 `"NIU"'
+label define classwkr_lbl 10 `"Self-employed"', add
+label define classwkr_lbl 13 `"Self-employed, not incorporated"', add
+label define classwkr_lbl 14 `"Self-employed, incorporated"', add
+label define classwkr_lbl 20 `"Works for wages or salary"', add
+label define classwkr_lbl 21 `"Wage/salary, private"', add
+label define classwkr_lbl 22 `"Private, for profit"', add
+label define classwkr_lbl 23 `"Private, nonprofit"', add
+label define classwkr_lbl 24 `"Wage/salary, government"', add
+label define classwkr_lbl 25 `"Federal government employee"', add
+label define classwkr_lbl 26 `"Armed forces"', add
+label define classwkr_lbl 27 `"State government employee"', add
+label define classwkr_lbl 28 `"Local government employee"', add
+label define classwkr_lbl 29 `"Unpaid family worker"', add
+label define classwkr_lbl 99 `"Missing/Unknown"', add
+label values classwkr classwkr_lbl
+
+label define uhrsworkt_lbl 997 `"Hours vary"'
+label define uhrsworkt_lbl 999 `"NIU"', add
+label values uhrsworkt uhrsworkt_lbl
+
+label define whyunemp_lbl 0 `"NIU"'
+label define whyunemp_lbl 1 `"Job loser - on layoff"', add
+label define whyunemp_lbl 2 `"Other job loser"', add
+label define whyunemp_lbl 3 `"Temporary job ended"', add
+label define whyunemp_lbl 4 `"Job leaver"', add
+label define whyunemp_lbl 5 `"Re-entrant"', add
+label define whyunemp_lbl 6 `"New entrant"', add
+label values whyunemp whyunemp_lbl
+
+label define whyabsnt_lbl 00 `"NIU"'
+label define whyabsnt_lbl 01 `"On temporary layoff (under 30 days)"', add
+label define whyabsnt_lbl 02 `"On indefinite layoff (30+ days)"', add
+label define whyabsnt_lbl 03 `"Slack work/business conditions"', add
+label define whyabsnt_lbl 04 `"Waiting for a new job to begin"', add
+label define whyabsnt_lbl 05 `"Vacation/personal days"', add
+label define whyabsnt_lbl 06 `"Own illness/injury/medical problems"', add
+label define whyabsnt_lbl 07 `"Child care problems"', add
+label define whyabsnt_lbl 08 `"Other family/personal obligation"', add
+label define whyabsnt_lbl 09 `"Maternity/paternity leave"', add
+label define whyabsnt_lbl 10 `"Labor dispute"', add
+label define whyabsnt_lbl 11 `"Weather affected job"', add
+label define whyabsnt_lbl 12 `"School/training"', add
+label define whyabsnt_lbl 13 `"Civic/military duty"', add
+label define whyabsnt_lbl 14 `"Does not work in the business"', add
+label define whyabsnt_lbl 15 `"Other"', add
+label values whyabsnt whyabsnt_lbl
+
+label define whyptlwk_lbl 000 `"NIU"'
+label define whyptlwk_lbl 001 `"No response"', add
+label define whyptlwk_lbl 010 `"Slack work, business conditions"', add
+label define whyptlwk_lbl 011 `"Material shortage"', add
+label define whyptlwk_lbl 012 `"Plant or machine repairs"', add
+label define whyptlwk_lbl 020 `"Seasonal work"', add
+label define whyptlwk_lbl 030 `"Weather affected job"', add
+label define whyptlwk_lbl 040 `"Labor dispute"', add
+label define whyptlwk_lbl 050 `"job started/ended during week"', add
+label define whyptlwk_lbl 051 `"New job started"', add
+label define whyptlwk_lbl 052 `"Job terminated"', add
+label define whyptlwk_lbl 060 `"Could only find part-time"', add
+label define whyptlwk_lbl 070 `"Not want full time work"', add
+label define whyptlwk_lbl 071 `"Retired/SS limit on earnings"', add
+label define whyptlwk_lbl 080 `"Full time work week under 35 hours"', add
+label define whyptlwk_lbl 081 `"Full time peak season only"', add
+label define whyptlwk_lbl 090 `"Holiday"', add
+label define whyptlwk_lbl 100 `"Own illness"', add
+label define whyptlwk_lbl 101 `"Health/medical limitation"', add
+label define whyptlwk_lbl 110 `"On vacation"', add
+label define whyptlwk_lbl 111 `"Vacation/personal day"', add
+label define whyptlwk_lbl 120 `"Too busy with house, school, etc"', add
+label define whyptlwk_lbl 121 `"Child care problems"', add
+label define whyptlwk_lbl 122 `"Other family/personal obligations"', add
+label define whyptlwk_lbl 123 `"School/training"', add
+label define whyptlwk_lbl 124 `"Civic/military duty"', add
+label define whyptlwk_lbl 130 `"Other"', add
+label values whyptlwk whyptlwk_lbl
+
+label define wkstat_lbl 10 `"Full-time schedules"'
+label define wkstat_lbl 11 `"Full-time hours (35+), usually full-time"', add
+label define wkstat_lbl 12 `"Part-time for non-economic reasons, usually full-time"', add
+label define wkstat_lbl 13 `"Not at work, usually full-time"', add
+label define wkstat_lbl 14 `"Full-time hours, usually part-time for economic reasons"', add
+label define wkstat_lbl 15 `"Full-time hours, usually part-time for non-economic reasons"', add
+label define wkstat_lbl 20 `"Part-time for economic reasons"', add
+label define wkstat_lbl 21 `"Part-time for economic reasons, usually full-time"', add
+label define wkstat_lbl 22 `"Part-time hours, usually part-time for economic reasons"', add
+label define wkstat_lbl 40 `"Part-time for non-economic reasons, usually part-time"', add
+label define wkstat_lbl 41 `"Part-time hours, usually part-time for non-economic reasons"', add
+label define wkstat_lbl 42 `"Not at work, usually part-time"', add
+label define wkstat_lbl 50 `"Unemployed, seeking full-time work"', add
+label define wkstat_lbl 60 `"Unemployed, seeking part-time work"', add
+label define wkstat_lbl 99 `"NIU, blank, or not in labor force"', add
+label values wkstat wkstat_lbl
+
+label define educ_lbl 000 `"NIU or no schooling"'
+label define educ_lbl 001 `"NIU or blank"', add
+label define educ_lbl 002 `"None or preschool"', add
+label define educ_lbl 010 `"Grades 1, 2, 3, or 4"', add
+label define educ_lbl 011 `"Grade 1"', add
+label define educ_lbl 012 `"Grade 2"', add
+label define educ_lbl 013 `"Grade 3"', add
+label define educ_lbl 014 `"Grade 4"', add
+label define educ_lbl 020 `"Grades 5 or 6"', add
+label define educ_lbl 021 `"Grade 5"', add
+label define educ_lbl 022 `"Grade 6"', add
+label define educ_lbl 030 `"Grades 7 or 8"', add
+label define educ_lbl 031 `"Grade 7"', add
+label define educ_lbl 032 `"Grade 8"', add
+label define educ_lbl 040 `"Grade 9"', add
+label define educ_lbl 050 `"Grade 10"', add
+label define educ_lbl 060 `"Grade 11"', add
+label define educ_lbl 070 `"Grade 12"', add
+label define educ_lbl 071 `"12th grade, no diploma"', add
+label define educ_lbl 072 `"12th grade, diploma unclear"', add
+label define educ_lbl 073 `"High school diploma or equivalent"', add
+label define educ_lbl 080 `"1 year of college"', add
+label define educ_lbl 081 `"Some college but no degree"', add
+label define educ_lbl 090 `"2 years of college"', add
+label define educ_lbl 091 `"Associate's degree, occupational/vocational program"', add
+label define educ_lbl 092 `"Associate's degree, academic program"', add
+label define educ_lbl 100 `"3 years of college"', add
+label define educ_lbl 110 `"4 years of college"', add
+label define educ_lbl 111 `"Bachelor's degree"', add
+label define educ_lbl 120 `"5+ years of college"', add
+label define educ_lbl 121 `"5 years of college"', add
+label define educ_lbl 122 `"6+ years of college"', add
+label define educ_lbl 123 `"Master's degree"', add
+label define educ_lbl 124 `"Professional school degree"', add
+label define educ_lbl 125 `"Doctorate degree"', add
+label define educ_lbl 999 `"Missing/Unknown"', add
+label values educ educ_lbl
+
+label define pension_lbl 0 `"NIU"'
+label define pension_lbl 1 `"No pension plan at work"', add
+label define pension_lbl 2 `"Pension plan at work, but not included"', add
+label define pension_lbl 3 `"Included in pension plan at work"', add
+label values pension pension_lbl
+
+label define firmsize_lbl 0 `"NIU"'
+label define firmsize_lbl 1 `"Under 10"', add
+label define firmsize_lbl 2 `"10 to 24"', add
+label define firmsize_lbl 3 `"Under 25"', add
+label define firmsize_lbl 4 `"10 to 49"', add
+label define firmsize_lbl 5 `"25 to 99"', add
+label define firmsize_lbl 6 `"50 to 99"', add
+label define firmsize_lbl 7 `"100 to 499"', add
+label define firmsize_lbl 8 `"500 to 999"', add
+label define firmsize_lbl 9 `"1000+"', add
+label values firmsize firmsize_lbl
+
+label define srcdisa2_lbl 00 `"NIU"'
+label define srcdisa2_lbl 01 `"Workers compensation"', add
+label define srcdisa2_lbl 02 `"Company or union disability"', add
+label define srcdisa2_lbl 03 `"Federal govt disability"', add
+label define srcdisa2_lbl 04 `"US military retirement disability"', add
+label define srcdisa2_lbl 05 `"State or local govt employee disability"', add
+label define srcdisa2_lbl 06 `"US railroad retirement disability"', add
+label define srcdisa2_lbl 07 `"Accident or disability insurance"', add
+label define srcdisa2_lbl 08 `"Black lung miners disability"', add
+label define srcdisa2_lbl 09 `"State temporary sickness"', add
+label define srcdisa2_lbl 10 `"Other or don't know"', add
+label values srcdisa2 srcdisa2_lbl
+
+label define srcreti1_lbl 0 `"NIU"'
+label define srcreti1_lbl 1 `"Company or Union  pension"', add
+label define srcreti1_lbl 2 `"Federal Government retirement Pension"', add
+label define srcreti1_lbl 3 `"US Military retirement pension"', add
+label define srcreti1_lbl 4 `"State or local Govt retirement pension"', add
+label define srcreti1_lbl 5 `"US Railroad retirement pension"', add
+label define srcreti1_lbl 6 `"Regular payments from annuities or paid-up insurance policies"', add
+label define srcreti1_lbl 7 `"Regular payments from IRA, KEOGH, or 401K accounts"', add
+label define srcreti1_lbl 8 `"Other or don't know"', add
+label values srcreti1 srcreti1_lbl
+
+label define srcreti2_lbl 0 `"NIU"'
+label define srcreti2_lbl 1 `"Company or Union  pension"', add
+label define srcreti2_lbl 2 `"Federal Government retirement Pension"', add
+label define srcreti2_lbl 3 `"US Military retirement pension"', add
+label define srcreti2_lbl 4 `"State or local Govt retirement pension"', add
+label define srcreti2_lbl 5 `"US Railroad retirement pension"', add
+label define srcreti2_lbl 6 `"Regular payments from annuities or paid-up insurance policies"', add
+label define srcreti2_lbl 7 `"Regular payments from IRA, KEOGH, or 401K accounts"', add
+label define srcreti2_lbl 8 `"Other or do not know"', add
+label values srcreti2 srcreti2_lbl
+
+label define whyss1_lbl 0 `"NIU"'
+label define whyss1_lbl 1 `"Retired"', add
+label define whyss1_lbl 2 `"Disabled (adult or child)"', add
+label define whyss1_lbl 3 `"Widowed"', add
+label define whyss1_lbl 4 `"Spouse"', add
+label define whyss1_lbl 5 `"Surviving child"', add
+label define whyss1_lbl 6 `"Dependent child"', add
+label define whyss1_lbl 7 `"On behalf of surviving, dependent, or disabled child(ren)"', add
+label define whyss1_lbl 8 `"Other (adult or child)"', add
+label values whyss1 whyss1_lbl
+
+label define whyss2_lbl 0 `"NIU"'
+label define whyss2_lbl 1 `"Retired"', add
+label define whyss2_lbl 2 `"Disabled (adult or child)"', add
+label define whyss2_lbl 3 `"Widowed"', add
+label define whyss2_lbl 4 `"Spouse"', add
+label define whyss2_lbl 5 `"Surviving child"', add
+label define whyss2_lbl 6 `"Dependent child"', add
+label define whyss2_lbl 7 `"On behalf of surviving, dependent, or disabled child(ren)"', add
+label define whyss2_lbl 8 `"Other (adult or child)"', add
+label values whyss2 whyss2_lbl
+
+label define offpov_lbl 01 `"Below Poverty Line"'
+label define offpov_lbl 02 `"Above Poverty Line"', add
+label define offpov_lbl 99 `"NIU"', add
+label values offpov offpov_lbl
+
+label define offpovuniv_lbl 00 `"Out of Poverty Universe"'
+label define offpovuniv_lbl 01 `"In Poverty Universe"', add
+label values offpovuniv offpovuniv_lbl
+
+label define disabwrk_lbl 0 `"NIU"'
+label define disabwrk_lbl 1 `"No disability that affects work"', add
+label define disabwrk_lbl 2 `"Disability limits or prevents work"', add
+label values disabwrk disabwrk_lbl
+
+label define health_lbl 1 `"Excellent"'
+label define health_lbl 2 `"Very good"', add
+label define health_lbl 3 `"Good"', add
+label define health_lbl 4 `"Fair"', add
+label define health_lbl 5 `"Poor"', add
+label values health health_lbl
+
+label define quitsick_lbl 0 `"NIU"'
+label define quitsick_lbl 1 `"No, did not quit job or retire"', add
+label define quitsick_lbl 2 `"Yes, quit job or retired"', add
+label values quitsick quitsick_lbl
+
+label define inclugh_lbl 0 `"NIU"'
+label define inclugh_lbl 1 `"No"', add
+label define inclugh_lbl 2 `"Yes"', add
+label values inclugh inclugh_lbl
+
+label define paidgh_lbl 00 `"NIU"'
+label define paidgh_lbl 10 `"No"', add
+label define paidgh_lbl 20 `"Yes"', add
+label define paidgh_lbl 21 `"Yes, paid for part"', add
+label define paidgh_lbl 22 `"Yes, paid for all"', add
+label values paidgh paidgh_lbl
+
+label define himcaid_lbl 1 `"No"'
+label define himcaid_lbl 2 `"Yes"', add
+label values himcaid himcaid_lbl
+
+label define gotwic_lbl 0 `"NIU"'
+label define gotwic_lbl 1 `"No"', add
+label define gotwic_lbl 2 `"Yes"', add
+label values gotwic gotwic_lbl
+
+label define union_lbl 0 `"NIU"'
+label define union_lbl 1 `"No union coverage"', add
+label define union_lbl 2 `"Member of labor union"', add
+label define union_lbl 3 `"Covered by union but not a member"', add
+label values union union_lbl
 }
-replace X11032 = X11032 + X11027 if X11033 == 1
-replace X11132 = X11132 + X11127 if X11133 == 1
-replace X11332 = X11332 + X11327 if X11333 == 1
-replace X11432 = X11432 + X11427 if X11433 == 1
-// If loan isn't already recorded, need to remove it
-replace X11032 = X11032 - X11027 if X11070 == 5
-replace X11132 = X11132 - X11127 if X11170 == 5
-replace X11332 = X11332 - X11327 if X11370 == 5
-replace X11432 = X11432 - X11427 if X11470 == 5
-gen Pension1 = X11032 + X11132 + X11332 + X11432 + X11259 + X11559
-label variable Pension1 "Pension from current main job"
-drop X11032 X11132 X11332 X11432 X11259 X11559 X11027 X11127 ///
-	 X11327 X11427  X11033 X11133 X11333 X11433 ///
-	 X11070 X11170 X11270 X11370 X11470
-	 
-// CURRENT BENEFITS FROM PENSIONS
-foreach var of varlist X6462 X6467 X6472 X6477 X6958 X6957 X5604 X5612 X5620 X5628 X6997{
-replace `var'=0 if `var'==-1
-}
-gen Pension2 = X6462 + X6467 + X6472 + X6477 + X6958 + X6957 + X5604 + X5612 ///
-				+ X5620 + X5628 + X6997 
-label variable Pension2 "Current and future pension benefits"
-drop X6462 X6467 X6472 X6477 X6958 X6957 X5604 X5612 X5620 X5628 X6997 
 
-// CREDIT CARD DEBT; STORE CREDIT OUTSTANDING X7575
-/* Recode zeros to zeros, missing is zero as well. Topcoding is 999,999 and is 
-not binding */
-replace X413 = 0 if X413 == -1
-replace X421 = 0 if X421 == -1
-replace X427 = 0 if X427 == -1
-gen Credit = X413 + X421 + X427 + X7575
-drop X413 X421 X427 X7575
-label variable Credit "Credit card debt, plus store credit outstanding"
+//Summary statistics
+replace incwage = . if incwage == 9999999
+replace incwage = . if incwage == 9999998
 
-// LINES OF CREDIT
-/* X1108, X1119 and X1130 are first, second and third lines of credit, X1136 is
-all remaining lines of credit */
-gen Cline = X1108 + X1119 + X1130 + X1136
-label variable Cline "Amount borrowed on lines of credit"
-rename X1108 cline1
-rename X1119 cline2
-rename X1130 cline3
-rename X1136 cline4
+su incwage
+su incwage if union != 0
+su incwage if union == 0
 
-// VEHICLE LOANS
-gen VehLoan = X2218 + X2318 + X2418 + X7169 + X2424 + X2519 + X2619 + X2625
-label variable VehLoan "Owed on vehicle loans"
-rename X2218 vehloan1
-label variable vehloan1 "Owed on vehicle loan 1"
-rename X2318 vehloan2
-label variable vehloan2 "Owed on vehicle loan 2"
-rename X2418 vehloan3
-label variable vehloan3 "Owed on vehicle loan 3"
-rename X7169 vehloan4
-label variable vehloan4 "Owed on vehicle loan 4"
-rename X2519 vehloan5
-label variable vehloan5 "Owed on vehicle loan 5"
-rename X2619 vehloan6
-label variable vehloan6 "Owed on vehicle loan 6"
+tab statefip if year == 2007
 
-// EDUCATION LOANS
-gen EduLoans = X7824 + X7847 + X7870 + X7924 + X7947 + X7970 + X7179
-label variable EduLoans "Amount owed on education loans"
-rename X7824 eduloan1
-label variable eduloan1 "Amount owed on education loan 1"
-rename X7847 eduloan2
-label variable eduloan2 "Amount owed on education loan 2"
-rename X7870 eduloan3
-label variable eduloan3 "Amount owed on education loan 3"
-rename X7924 eduloan4
-label variable eduloan4 "Amount owed on education loan 4"
-rename X7947 eduloan5
-label variable eduloan5 "Amount owed on education loan 5"
-rename X7970 eduloan6
-label variable eduloan6 "Amount owed on education loan 6"
-drop X7179
+// Create variables for future graphs and regressions
+**Create updated employed dummy
+gen empstat_revised = empstat == 10
+replace empstat_revised = 0 if empstat != 10 & empstat !=0
+replace empstat_revised = . if empstat == 0 
 
-// OTHER CONSUMER LOANS
-gen OthCLoan = X2723 + X2740 + X2823 + X2840 + X2923 + X2940 + X7183
-label variable OthCLoan "Other consumer loans"
-drop X2723 X2740 X2823 X2840 X2923 X2940 X7183
+**Create updated union dummy
+gen union_revised = 1 if union >= 2
+replace union_revised = 0 if union < 2
 
-//TOTAL HOME LOANS
-*Home mortgate
-gen Mortgage = X805 + X905 + X1005 + X1044
-label variable Mortgage "Total home loans incl mortgages, other home equity loans and other property loans"
-rename X805 mortgage1
-rename X905 mortgage2
-rename X1005 mortgage3
-rename X1044 mortgage4
+**Create RTW dummy
+gen rtw = .
 
-*home improvement loan
-gen Homeimploan = X1215 + X1219
-label variable Homeimploan "Total loans for home improvement"
-drop X1215 X1219
-
-
-*home laons outstanding
-gen Investproploans = X1715 + X1815 + X2006 + X2016
-label variable Investproploans "Loans against investment property and vacation homes"
-drop X1715 X1815 X2006 X2016
-
-// NET WEALTH
-**Assets
-*CDs Checking Bonds NABusiness MiscAssets Stocks Pension1 ATMIA Credit 
-*Homeimploan LifeInsurance Investprop netowedfrombus Savings Farm Vehicles 
-*MutualFund ActBusiness IRA
-gen assets = CDs + Checking + Bonds + NABusiness + MiscAssets + Stocks + ///
-	Pension1 + Pension2 + ATMIA + Credit + Homeimploan + LifeInsurance + ///
-	Investprop + netowedfrombus + Savings + Farm + Vehicles + MutualFund ///
-	+ ActBusiness + IRA
-
-**Liabilities
-*Credit Cline cline1 cline2 cline3 cline4 VehLoan vehloan1 vehloan2 vehloan3 
-*vehloan4 vehloan5 vehloan6 EduLoans eduloan1 eduloan2 eduloan3 eduloan4 eduloan5 
-*eduloan6 OthCLoan Mortgage mortgage2 mortgage3 mortgage4 Homeimploan Investproploans
-*Credit Cline VehLoan EduLoans OthCLoan Mortgage Homeimploan Investproploans
-gen liabilities = Credit + Cline + VehLoan + EduLoans + OthCLoan + Mortgage ///
-	+ Homeimploan + Investproploans
-
-*Generate wealth and log wealth variables
-gen wealth = assets - liabilities
-
-
-/*Divide the weight (X42001) by 5 so that the sum of the weights 
-across all five implicates equals the correct population total.
-*/
-gen weight = X42001/5
-
-/// COMPUTE POPULATION AND WEALTH SHARE VARIABLES
-// POPULATION SHARE
-*Create new running id sorted by wealth & ignore missing wealth values (assuming 
-*nonresponse is unbiased)
-
-sort wealth
-gen id = _n if wealth != .
-sum id
-gen popshare = id/`r(max)'*100
-label variable popshare "Percent of population"
-
-// WEALTH SHARE
-*First compute each observation's weighted wealth for each percentile, by bins of .001
-
-gen wealthwt = .
-forval i = 1(.001)100 {
-	_pctile wealth [pw=weight], p(`i')
-	replace wealthwt = `r(r1)' if popshare >= `i' & popshare != .
+foreach i in 01 04 05 12 13 16 19 20 22 26 28 31 37 38 40 45 46 47 48 49 51 54 55 56{
+	replace rtw = 1 if statefip == `i'
 	}
 
-*Now determine each observation's share of total wealth
-sort wealth
-qui egen totalwealth = total(wealthwt) if wealthwt != .
-gen wealth1 = (wealthwt/totalwealth)*100
+**Income
+*Create log earned income
+gen lnincwage = ln(incwage)
 
-*Now generate cumulative wealthshare variable
-gen wealthshare = .
-replace wealthshare = sum(wealth1) if popshare != .
-label variable wealthshare "Percent of wealth"
+*Create mean earned income variable by year
+sort year
+by year: egen incwagemean_union = mean(incwage) if union_revised==1 & empstat_revised==1
 
-pause
+sort year
+by year: egen incwagemean = mean(incwage) if union_revised==0 & empstat_revised==1
 
-********************************************************************************
-**                                   Q1                                       **
-********************************************************************************
-*1. Make two histograms for: 
+*Create mean earned income by year and union type
+egen incwagemean_rtw = mean(incwage) if (union_revised==1 & rtw==1) | (union_revised==0 & rtw==1), by(year) 
+egen incwagemean_nonrtw = mean(incwage) if (union_revised==1 & rtw==0) | (union_revised==0 & rtw==0), by(year) 
 
-*(a) the level of wealth (only plot up to the 95th percentile, 
-*otherwise the graph will be hard to read):
+**Union Density
+*Create union density variable
+sort statefip year
+by statefip year: egen count_union=count(union_revised) if union_revised==1
+by statefip year: egen total_pop=count(_N)
 
-twoway (histogram wealthwt if popshare <= 95, color("22 150 210") ///
-	xlab(, nogrid) ylab(, nogrid) ytitle("Density") xtitle("Level of Net Wealth") ///
-	title("Level of Net Wealth through 95 Percentile"))
+gen union_density = .
+replace union_density = count_union/total_pop
+
+*Create mean union density variable by year
+sort year
+by year: egen mean_union_density = mean(union_density)
+
+**Create Treat=IN(18); Control=AK, CA, CO, CT, DC, DE, IL, KY, MA, MD, ME, MN, MO, 
+** MT, NH, NJ, NM, NY, OH, OR, PA, RI, VT, WA, WI, WV
+
+gen treat = .
+
+foreach i in 02 06 08 09 10 11 17 21 23 24 25 27 28 30 33 34 35 36 39 41 42 44 50 53 54 55 {
+	replace treat = 0 if statefip == `i'
+	}
+
+//Summary graphs
+/*Graph 01_Earned Income by Type of Worker
+twoway line incwagemean_union year, color("22 150 210") ytitle("Earned Income") ///
+	ylabel(, labsize(vsmall) nogrid) xlab(,nogrid) xtitle("Year") ///
+	ti("Earned Income by Type of Worker") legend(order(1 "Unionized Earned Income" ///
+	2 "Nonunionized Earned Income") position(6)) ///
+	|| line incwagemean year
+
+Graph 02_Earned Income Density by Worker Type
+twoway (hist incwage if union_revised==1 & incwage < 500000, color("22 150 210") width(10000) ///
+		xtitle("Earned Income") ytitle("Frequency") ti("Unionized Earned Income Density") ///
+		ylabel(, labsize(vsmall) nogrid) xlab(,nogrid)) ///
+		(hist incwage if union_revised==0 & incwage < 500000, lcolor(black) fcolor(none) width(10000) ///
+		xtitle("Earned Income") ytitle("Frequency") ///
+		ylabel(, labsize(vsmall) nogrid) xlab(,nogrid)), ///
+		legend(order(0 "Nonunionized Earned Income Density" 1 "Unionized Earned Income Density" ) ///
+		ti("Earned Income Density by Worker Type") position(6))
 	
-pause
+Graph 03_Unionized Worker Count by Year
+twoway scatter unioncount year if year >= 2005, mcolor("22 150 210") ///
+	ytitle("Unionized Worker Count") xtitle("Year") ti("Unionized Worker Count by Year") ///
+	ylabel(, labsize(vsmall) nogrid) xlab(,nogrid)
 
-*(b) the logarithm of wealth:
-gen lnwealth = .
-replace lnwealth = log(wealthwt) if wealthwt != .
-
-twoway (histogram lnwealth, color("22 150 210") xlab(, nogrid) ylab(, nogrid) ///
-	ytitle("Density") xtitle("Log of Net Wealth") title("Log of Net Wealth"))
-
-pause
-
-********************************************************************************
-**                                   Q2                                       **
-********************************************************************************
-*Make a table with the wealth shares of (a) the bottom 50 percent, (b) the next 
-*40 percent,(c) the next 9 percent, (d) the top 1 percent, (e) the top 0.1 
-*percent of households in the sample.
-
-*Method 1, Share of Wealth 
-sort wealthwt
-pshare estimate wealthwt, p(50 90 99)
-pshare estimate wealthwt, p(99.9 100)
-  
- *Create dummies for groups, used later in do file
-gen cat1 = .
-replace cat1=0 if popshare!=.
-replace cat1 = 1 if popshare<=50 & popshare!=.
-label variable cat1 "50 percentile"
- 
-gen cat2 = .
-replace cat2=0 if popshare!=.
-replace cat2 = 1 if popshare > 50 & popshare <= 90 & popshare!=.
-label variable cat2 "Next 40 percent"
-
-gen cat3 = .
-replace cat3=0 if popshare!=.
-replace cat3 = 1 if popshare > 90 & popshare <= 99 & popshare!=.
-label variable cat3 "90-99 percent"
-
-gen cat4 = .
-replace cat4=0 if popshare!=.
-replace cat4 = 1 if popshare > 99 & popshare!=.
-label variable cat4 "Top 1 percentile"
-
-gen cat5 = .
-replace cat5=0 if popshare!=.
-replace cat5 = 1 if popshare > 99.9 & popshare!=.
-label variable cat1 "Top 0.1 percentile"
-
-
-
-********************************************************************************
-**                                   Q3                                       **
-********************************************************************************
-*Plot the quantile function (you will likely have to cut the y-axis to make it 
-*readable due to the “dwarves and giants” feature). At the end, your answers to 
-*question 2, 6 and 7 can be summarized in a table like Table 1 below.
-
-sort wealthwt
-
-twoway (bar wealth1 popshare if popshare <= 99, xsc(r(0 100)) ///
-	color("22 150 210") ytitle("Wealth Share") ylabel(, labsize(vsmall) nogrid) ///
-	xlab(,nogrid) xtitle("Population Percentile") ///
-	ti("Quantile Wealth Function through 99 Percentile")) ///
-	(bar wealth1 popshare if wealth1 < 0, ///
-	color("253 191 17") legend(order(1 "Positive Net Wealth" ///
-	2 "Negative Net Wealth")))
-
-pause
-
-********************************************************************************
-**                                   Q4                                       **
-********************************************************************************
-// GRAPH LORENZ CURVE
-line wealthshare popshare if inrange(popshare, 1, 100), lcolor("22 150 210") ///
-	aspectratio(1) xlab(, nogrid) ylab(, nogrid) ||(function y=x, range(0 100) ///
-	lcolor(grey)), legend(order (1 "Lorenz Curve" 2 "45 degree line")) ///
-	ytitle("Wealth Share") xtitle("Population Share") title("Lorenz Curve") 
-
-pause 
-
-********************************************************************************
-**                                   Q5                                       **
-********************************************************************************
-*For the wealth above the 90th percentile, plot log(1 − F(w)) against logw where F(w)
-*is the cumulative distribution function of wealth w. Figure 1 plots the corresponding
-*graph for the 2007 SCF. If the distribution had an exact Pareto tail, this should be a
-*straight line. The plot you will generate will most likely have the feature that the Pareto
-*relationship breaks down for high enough wealth levels. Why?
-
-*Create log(1-F(w)), where F(w) is the cumulative distribution function of wealth.
-
-*Weighted log(1-F(w)
-gen topshare = .
-replace topshare = log(1-wealthshare/100) if wealthshare != .
-
-scatter topshare lnwealth if popshare >= 90, ///
-	mcolor("22 150 210")legend(order(2 "Fitted Values")) xlab(, nogrid) ///
-	xtitle("Log Net Wealth") ylab(, nogrid) ytitle("Log(1-F(Net Wealth))") ///
-	title("Pareto Tail for Top 10 Percent") msymbol(smcircle)
-
-pause
-
-********************************************************************************
-**                                   Q6                                       **
-********************************************************************************
-*Let’s assess what fraction of people in different parts of the wealth distribution 
-*are “entrepreneurs” broadly defined. To this end use the variable X4106. For 
-*each of the wealth groups in question 2, calculate the fraction of people who 
-*are “entrepreneurs”. Add your answer to Table 1.
-
-// EMPLOYMENT STATUS
-
-gen selfemp=.
-replace selfemp=0 if popshare!=.
-replace selfemp=1 if X4106>1 | X4706>1
-label var selfemp "Employed"
-
-tabout cat1 cat2 cat3 cat4 cat5 selfemp ///
-	using table3.xls, show(all) replace c(row)
+Graph 04_Earned Income by Type of State
+twoway line incwagemean_nonrtw year if RTW==0, color("22 150 210") ytitle("Average Earned Income") ///
+	ylabel(, labsize(vsmall) nogrid) xlab(,nogrid) xtitle("Year") ///
+	ti("Earned Income by Type of State") legend(order(0 "Non-Right to Work States" ///
+	1 "Right to Work States") position(6)) || line incwagemean_rtw year if RTW==1
 	
-su selfemp
+Graph 05_Union Densityby Year
+twoway scatter mean_union_density year if year >= 2005, mcolor("22 150 210") ///
+	ytitle("Unionized Worker Density") xtitle("Year") ti("Unionized Worker Density by Year") ///
+	ylabel(, labsize(vsmall) nogrid) xlab(,nogrid)
+
+Graph XYZ Check union density within states that implement Right to Work. Looks 
+//like there are preexisting downward trends in all three treatment states.
+
+Graph X Union density by year for Indiana
+twoway scatter union_density year if statefip==18 & year >= 2005, mcolor("22 150 210") ///
+	ytitle("Unionized Worker Density") xtitle("Year") ti("Unionized Worker Density by Year") ///
+	ylabel(, labsize(vsmall) nogrid) xlab(,nogrid)
 	
+Graph Y Union density by year for Michigan
+twoway scatter union_density year if statefip==26 & year >= 2005, mcolor("22 150 210") ///
+	ytitle("Unionized Worker Density") xtitle("Year") ti("Unionized Worker Density by Year") ///
+	ylabel(, labsize(vsmall) nogrid) xlab(,nogrid)
+	
+Graph Z Union density by year for Wisconsin
+twoway scatter union_density year if statefip==55 & year >= 2005, mcolor("22 150 210") ///
+	ytitle("Unionized Worker Density") xtitle("Year") ti("Unionized Worker Density by Year") ///
+	ylabel(, labsize(vsmall) nogrid) xlab(,nogrid)*/
+
+compress
+	
+save "C:\Users\Chris\Documents\Princeton\WWS Spring 2019\Economic Causes and Conesequences of Inequality\Research Paper\Stata\CPS_001_Staging.dta", replace
+
+******************************************
+*Indiana, Set up single state Event Study*
+******************************************
+//Create variables
+*Define Indiana(18) as the Treatment
+replace treat = 1 if statefip==18
+
+*define time in relation to 2012, when Indiana passed RTW
+gen time = .
+replace time = year-2012
+
+*Becaues negative factor vars cause problems when running regressions; t=0 is now t=6
+*gen time2 = time + 6
+*gen time2 = . if time < 0
+
+*Generate event window
+gen window = 1
+replace window = 0 if time <= -6
+replace window = 0 if time >= 4
+
+*Create union density by year for Indiana vs C groups
+sort year
+by year: egen mean_union_density_indiana = mean(union_density) if treat==1
+
+sort year
+by year: egen mean_union_density_control = mean(union_density) if treat==0
+
+*Create log wages by year for Indiana vs C groups
+sort year
+by year: egen lnincwage_indiana = mean(lnincwage) if treat==1
+
+sort year
+by year: egen lnincwage_control = mean(lnincwage) if treat==0
+
+//Regression
+/*(1) Naive regression for union vs. nonunion wages, illustrating level difference of Figure 1.
+reg lnincwage union_revised
+
+*(2) Now with year, state, age FE, clustered by state to account for correlation across dataset, effectively the same as Specification 1
+reg lnincwage union_revised i.year i.statefip
+
+**Re: Union Density Regresion
+reg union_density i.treat##b5.time i.sex i.race empstat [pweight=earnwt]
+margins treat, at(time=(1(1)12))
+marginsplot
+
+**Re: ln(wages) regression
+*Now conduct DiD for union members in ALL T states vs. C states defined earlier
+reg lnincwage i.treat##b5.time i.sex i.race empstat i.age [pweight=earnwt]
+margins treat, at(time=(1(1)12))
+marginsplot
+*/
+
+//Graphs
+**Union Density by Year, Indiana vs. Control States
+/*twoway line mean_union_density_indiana year if treat==1, color("22 150 210") ytitle("Union Density") ///
+	ylabel(, labsize(vsmall) nogrid) xlab(,nogrid) xtitle("Year") ///
+	ti("Union density by year") legend(order(0 "Control States" ///
+	1 "Indiana") position(6)) || line mean_union_density_control year if treat==0
+
+**Union mean log earned income, Indiana vs. Control States
+twoway line lnincwage_indiana year if treat==1, color("22 150 210") ytitle("Average Log Earned Income") ///
+	ylabel(, labsize(vsmall) nogrid) xlab(,nogrid) xtitle("Year") ///
+	ti("Log Earned Income by Group Type") legend(order(0 "Control States" ///
+	1 "Indiana") position(6)) || line lnincwage_control year if treat==0
+*/
+
+**Union Density, Indiana vs. Control States
+preserve
+
+drop if treat==.
+drop if window==0
+
+collapse (mean) union_density, by (treat time)
+
+reshape wide union_density, i(time) j(treat)
+
+graph twoway line union_density0 union_density1 time, sort color("22 150 210") ytitle("Union Density") ///
+	ylabel(, labsize(vsmall) nogrid) xlab(-6(1)4,nogrid) xtitle("Time") ///
+	ti("Union Density, Indiana vs. Controls") legend(order(0 "Control States" ///
+	1 "Indiana") position(6))
+
+restore
+
 pause
 
-********************************************************************************
-**                                   Q7                                       **
-********************************************************************************
-*Finally, repeat the exercise from the previous question but focusing on race. 
-*In particular, report the fraction of people in different parts of the wealth 
-*distribution that self-identify as “white.” From the codebook, the right 
-*variable variable seems to be X6809 but you may want to double-check this. Add 
-*your answer to Table 1.
+**Mean Earned Income Indiana vs. Control States
+preserve
 
-// RACE
-*For those who identify as white for their primary response.
-gen white_1=.
-replace white_1=0 if popshare!=.
-replace white_1=1 if X6809==1 & popshare!=.
-label var white_1 "Self ID White"
+drop if treat==.
 
-*For those who identify as white for their primary or secondary response.
-gen white_2=.
-replace white_2=0 if popshare!=.
-replace white_2=1 if X6809==1 | X6810==1 & popshare!=.
-label var white_2 "Self ID White Expanded"
+collapse (mean) incwage, by (treat year)
 
-su white_1
+reshape wide incwage, i(year) j(treat)
 
-*Model 1 
-tabout cat1 cat2 cat3 cat4 cat5 white_1 using table4.xls, show(all) replace c(row) 
+graph twoway line incwage0 incwage1 year, sort color("22 150 210") ytitle("Earned Income") ///
+	ylabel(, labsize(vsmall) nogrid) xlab(-6(1)4,nogrid) xtitle("Year") ///
+	ti("Earned Income, Indiana vs. Controls") legend(order(0 "Control States" ///
+	1 "Indiana") position(6))
 
-*Model 2
-tabout cat1 cat2 cat3 cat4 cat5 white_2 using table4.xls, show(all) append c(row)
+restore
+
+*******************************************
+*Michigan, Set up single state Event Study*
+*******************************************
+use "CPS_001_Staging.dta"
+
+//Create variables
+*Define Indiana(18) as the Treatment
+replace treat = 1 if statefip==23
+
+*define time in relation to 2012, when Indiana passed RTW
+gen time = .
+replace time = year-2013
+
+*Becaues negative factor vars cause problems when running regressions; t=0 is now t=6
+*replace time = time + 6
+*replace time = . if time < 0
+
+*Generate event window
+gen event_window = 1
+replace event_window = 0 if time <= -6
+replace event_window = 0 if time >= 4
+
+*Create union density by year for Michigan vs C groups
+sort year
+by year: egen mean_union_density_michigan = mean(union_density) if treat==1
+
+sort year
+by year: egen mean_union_density_control = mean(union_density) if treat==0
+
+*Create log wages by year for Michigan vs C groups
+sort year
+by year: egen lnincwage_michigan = mean(lnincwage) if treat==1
+
+sort year
+by year: egen lnincwage_control = mean(lnincwage) if treat==0
+
+//Regression
+/*(1) Naive regression for union vs. nonunion wages, illustrating level difference of Figure 1.
+reg lnincwage union_revised
+
+*(2) Now with year, state, age FE, clustered by state to account for correlation across dataset, effectively the same as Specification 1
+reg lnincwage union_revised i.year i.statefip
+
+**Re: Union Density Regresion
+reg union_density i.treat##b5.time i.sex i.race empstat [pweight=earnwt]
+margins treat, at(time=(1(1)12))
+marginsplot
+
+**Re: ln(wages) regression
+*Now conduct DiD for union members in ALL T states vs. C states defined earlier
+reg lnincwage i.treat##b5.time i.sex i.race empstat i.age [pweight=earnwt]
+margins treat, at(time=(1(1)12))
+marginsplot
+*/
+
+//Graphs
+**Union Density by Year, Michigan vs. Control States
+/*twoway line mean_union_density_michigan year if treat==1, color("22 150 210") ytitle("Union Density") ///
+	ylabel(, labsize(vsmall) nogrid) xlab(,nogrid) xtitle("Year") ///
+	ti("Union density by year") legend(order(0 "Control States" ///
+	1 "Indiana") position(6)) || line mean_union_density_control year if treat==0
+
+**Union mean log earned income, Michigan vs. Control States
+twoway line lnincwage_michigan year if treat==1, color("22 150 210") ytitle("Average Log Earned Income") ///
+	ylabel(, labsize(vsmall) nogrid) xlab(,nogrid) xtitle("Year") ///
+	ti("Log Earned Income by Group Type") legend(order(0 "Control States" ///
+	1 "michigan") position(6)) || line lnincwage_control year if treat==0
+*/
+
+**Union Density, Michigan vs. Control States
+preserve
+
+drop if treat==.
+drop if window==0
+
+collapse (mean) union_density, by (treat time)
+
+reshape wide union_density, i(time) j(treat)
+
+graph twoway line union_density0 union_density1 time, sort color("22 150 210") ytitle("Union Density") ///
+	ylabel(, labsize(vsmall) nogrid) xlab(-6(1)4,nogrid) xtitle("Time") ///
+	ti("Union Density, Michigan vs. Controls") legend(order(0 "Control States" ///
+	1 "Michigan") position(6))
+
+restore
+
+pause
+
+** Michigan vs. Control States
+preserve
+
+drop if treat==.
+
+collapse (mean) incwage, by (treat year)
+
+reshape wide incwage, i(year) j(treat)
+
+graph twoway line incwage0 incwage1 year, sort color("22 150 210") ytitle("Earned Income") ///
+	ylabel(, labsize(vsmall) nogrid) xlab(-6(1)4,nogrid) xtitle("Year") ///
+	ti("Earned Income, Michigan vs. Controls") legend(order(0 "Control States" ///
+	1 "Michigan") position(6))
+
+restore
+
+pause
+
+***********
+*   END   *
+***********
+
+
+**Look up how to restart stata from certain point, potentially in IPA training
+**Look up predict graphs
+**Conduct similar graphs, at the very lest predictive margins, for other T states one-by-one
+
+	
+//Conditional on RTW state, create var. where 0=pre, 1=post
+*gen RTWtime=0 if (statefip==18 & year <=2012) | (statefip==26 & year <=2013) | (statefip==55 & year <=2015)
+*replace RTWtime=1 if (statefip==18 & year > 2012) | (statefip==26 & year > 2013) | (statefip==55 & year > 2015)
+
+/*
+//Normalize event at t=0 for each RTW state
+sort statefip year
+
+gen time = .
+replace time = year-2012
+
+**Indiana at year 2012
+gen t_indi = .
+replace t_indi = year-2012
+
+**Michigan at year 2013
+gen t_mich = .
+replace t_mich = year-2013
+
+**Wisconsin at year 2015
+gen t_wisc = .
+replace t_wisc = year-2015
+
+**West Virginia at year 2016
+gen t_wvir = .
+replace t_wvir = year-2016
+
+
+*Now create Event Window dummy; [-6 to 4]
+foreach x in indi mich wisc {
+gen t_`x'2 = .
+replace t_`x'2 = t_`x' if t_`x' >= -6 & t_`x' <= 4
+}
+
+
+*Create normalized, time-bound variable for all Treatment States
+gen t_norm = .
+replace t_norm = t_indi2 if statefip == 18
+replace t_norm = t_mich2 if statefip == 26
+replace t_norm = t_wisc2 if statefip == 55
+
+*sort statefip year t_norm
+*browse statefip year t_norm 
+
+
+**Becaues negative factor vars cause problems when running regressions; t=0 is now t=6
+foreach x in indi mich wisc {
+gen t_`x'3 = .
+replace t_`x'3 = t_`x'2 + 7
+}
+
+*Not sure if this is useful
+*gen eventwindow = 1 if event_t == 1 | event_t == 0
+*replace eventwindow = 0 if eventwindow != 1
+
+
+*Create T vs C, at first only for Michigan, compared to 
+gen treatm = 1 if statefip == 26
+replace treatm = 0 if statefip == 27 | statefip == 17 | statefip == 29
+
+*Create T vs C for all groups
+gen treat = 1 if statefip == 18 | statefip == 26 | statefip == 55
+replace treat = 0 if statefip == 27 | statefip == 17 | statefip == 29
+*/
+
+//Naive regressions
+*Generage ln(wage)
+
+/*
+reg lnincwage union_revised
+
+*Now with year, state, age FE, clustered by state to account for correlation across dataset
+reg lnincwage union_revised i.year i.statefip i.age
+
+*Re: ln(wages) Now conduct DiD for union members in ALL T states vs. C states defined earlier
+reg lnincwage i.treat##i.union_revised i.age i.sex i.race i.year empstat [pweight=earnwt]
+
+*Re: Union Count: Now conduct DiD for union members in ALL T states vs. C states defined earlier
+reg unioncount i.treat##i.union_revised i.age i.sex i.race i.year empstat [pweight=earnwt]
+
+**How sensitive is this to bandwidth changes?
+
+**Re: ln(wages) Now conduct event study DiD for union members in all T states vs. C states (need to add education)
+reg lnincwage b2012.year##i.treat##i.union_revised i.age i.sex i.race empstat [pweight=earnwt]
+
+**Re: Union Count: Now conduct event study DiD for union members in all T states vs. C states (need to add education)
+reg lnincwage b2012.year##i.treat##i.union_revised i.age i.sex i.race empstat [pweight=earnwt]
+
+//Review
+* placebo
+
+*first differences
+
+
+
+**Now create universal event_t=0/1 if state is pre/post t=0 within event window
+/*gen event_t = .
+
+replace event_t = 1 if t_indi >= 1 & t_indi <= 4 & statefip == 18
+replace event_t = 0 if t_indi < 1 & t_indi >= -11 & statefip == 18 
+
+replace event_t = 1 if t_mich >= 1 & t_mich <= 4 & statefip == 26
+replace event_t = 0 if t_mich < 1 & t_mich >= -11 & statefip == 26
+
+replace event_t = 1 if t_wisc >= 1 & t_wisc <= 4 & statefip == 55
+replace event_t = 0 if t_wisc < 1 & t_wisc >= -11 & statefip == 55
+
+# delimit ;
+replace treat = 0 if
+	statefip == 27 |
+	statefip == 27 |
+	statefip == 27 |
+	statefip == 27 |
+	statefip == 27 |
+	statefip == 27 |
+	statefip == 27 |
+	statefip == 27 |
+	statefip == 27 |
+	statefip == 27 |
+	statefip == 27 |
+	statefip == 27 |
+	statefip == 27 |
+	statefip == 27 |
+	statefip == 27 |
+	statefip == 27 |
+	statefip == 27 |
+	;
+# delimit cr 
+
+*/
